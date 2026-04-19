@@ -6,6 +6,7 @@ import { Home } from "./pages/Home";
 import { CategoryExercises } from "./pages/CategoryExercises";
 import { ExerciseDetail } from "./pages/ExerciseDetail";
 import { MedicalWarning } from "./pages/MedicalWarning";
+import { WeeklySummary } from "./pages/WeeklySummary";
 
 export const router = createBrowserRouter([
   {
@@ -17,6 +18,7 @@ export const router = createBrowserRouter([
       { path: "/inicio",                   Component: Home },
       { path: "/categoria/:categoryId",    Component: CategoryExercises },
       { path: "/ejercicio/:exerciseId",    Component: ExerciseDetail },
+      { path: "/resumen-semanal",          Component: WeeklySummary },
       { path: "*",                         Component: Welcome },
     ],
   },

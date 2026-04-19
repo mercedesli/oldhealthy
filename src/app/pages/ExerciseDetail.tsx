@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { exercises, categories, type Exercise } from "../data/exercises";
 import { supabase, getUserId } from "../../lib/supabase";
+import { recordExercise, addSessionRecord } from "../../lib/streaks";
 import { useState, useEffect } from "react";
 
 // ─── Color helpers ────────────────────────────────────────────────────────────
@@ -506,6 +507,8 @@ export function ExerciseDetail() {
   const handleComplete = (sets: number, durationSecs: number) => {
     markExerciseCompleted(exercise.id);
     setCompletedToday(true);
+    recordExercise();
+    addSessionRecord({ exerciseId: exercise.id, exerciseName: exercise.name, categoryId: exercise.categoryId, durationSecs });
     saveSessionToSupabase(exercise.id, exercise.name, sets, durationSecs);
   };
 
