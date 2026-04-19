@@ -2,10 +2,13 @@ import { useParams, useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ChevronLeft, Clock, RotateCcw, Pause, Info, Play,
-  Heart, Star, CheckCircle, X,
+  Heart, Star, CheckCircle, X, SkipForward,
 } from "lucide-react";
 import { exercises, categories, type Exercise } from "../data/exercises";
+import { supabase, getUserId } from "../../lib/supabase";
 import { useState, useEffect } from "react";
+
+// ─── Color helpers ────────────────────────────────────────────────────────────
 
 function getCategoryColors(id: string) {
   const map: Record<string, { from: string; to: string; lightBg: string }> = {
@@ -17,9 +20,103 @@ function getCategoryColors(id: string) {
   return map[id] || { from: "#3D8A62", to: "#5BAF7A", lightBg: "#E8F5EE" };
 }
 
-function InfoCard({
-  icon, label, value, lightBg, textColor,
-}: {
+// ─── Parse helpers ────────────────────────────────────────────────────────────
+
+function parseSets(setsStr: string): number {
+  const m = setsStr.match(/(\d+)/);
+  return m ? Math.max(1, parseInt(m[1])) : 3;
+}
+
+function parseRestSeconds(s: string): number {
+  const m = s.match(/(\d+)/);
+  return m ? Math.max(10, parseInt(m[1])) : 30;
+}
+
+/**
+ * Parsea el campo `duration` (ej. "5–8 min", "8 min") en segundos totales.
+ * Retorna tiempo por serie = total / sets para que el temporizador mida cada serie.
+ */
+function parseExerciseSeconds(duration: string, totalSets: number): number {
+  const m = duration.match(/(\d+)/);
+  if (!m) return 60;
+  const num = parseInt(m[1]);
+  const totalSecs = duration.toLowerCase().includes("min") ? num * 60 : num;
+  return Math.max(30, Math.round(totalSecs / totalSets));
+}
+
+// ─── AudioContext beep ────────────────────────────────────────────────────────
+
+function playBeep() {
+  try {
+    const AudioCtx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const ctx = new AudioCtx();
+    // Tres pulsos cortos ascendentes
+    const tones = [660, 880, 1100];
+    tones.forEach((freq, i) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      const t = ctx.currentTime + i * 0.18;
+      gain.gain.setValueAtTime(0.35, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+      osc.start(t);
+      osc.stop(t + 0.14);
+    });
+    setTimeout(() => ctx.close(), 1000);
+  } catch {
+    // AudioContext no disponible — continúa en silencio
+  }
+}
+
+// ─── Supabase helper ──────────────────────────────────────────────────────────
+
+async function saveSessionToSupabase(
+  exerciseId: string,
+  exerciseName: string,
+  seriesCompleted: number,
+  durationSeconds: number,
+) {
+  try {
+    const { error } = await supabase.from("sesiones_ejercicio").insert({
+      usuario_id:         getUserId(),
+      ejercicio_id:       exerciseId,
+      nombre_ejercicio:   exerciseName,
+      series_completadas: seriesCompleted,
+      duracion_segundos:  durationSeconds,
+    });
+    if (error) console.warn("[Supabase] sesión:", error.message);
+  } catch {
+    // Supabase no disponible — localStorage ya tiene el dato
+  }
+}
+
+// ─── localStorage helpers ─────────────────────────────────────────────────────
+
+function getTodayStr() {
+  return new Date().toISOString().split("T")[0];
+}
+function isCompletedToday(id: string): boolean {
+  try {
+    const d = JSON.parse(localStorage.getItem("completedExercises") || "{}");
+    return d[id] === getTodayStr();
+  } catch { return false; }
+}
+function markExerciseCompleted(id: string) {
+  try {
+    const d = JSON.parse(localStorage.getItem("completedExercises") || "{}");
+    d[id] = getTodayStr();
+    localStorage.setItem("completedExercises", JSON.stringify(d));
+  } catch {}
+}
+
+// ─── InfoCard ─────────────────────────────────────────────────────────────────
+
+function InfoCard({ icon, label, value, lightBg, textColor }: {
   icon: React.ReactNode; label: string; value: string; lightBg: string; textColor: string;
 }) {
   return (
@@ -31,84 +128,126 @@ function InfoCard({
   );
 }
 
-function parseSets(setsStr: string): number {
-  const match = setsStr.match(/(\d+)/);
-  return match ? Math.max(1, parseInt(match[1])) : 3;
+// ─── CircularTimer SVG ────────────────────────────────────────────────────────
+
+function CircularTimer({
+  current, total, stroke, trackStroke, size = 150,
+}: {
+  current: number; total: number; stroke: string; trackStroke: string; size?: number;
+}) {
+  const r  = size / 2 - 10;
+  const cx = size / 2;
+  const c  = 2 * Math.PI * r;
+  const offset = c * (1 - current / total);
+  return (
+    <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+      <circle cx={cx} cy={cx} r={r} fill="none" stroke={trackStroke} strokeWidth="9" />
+      <circle
+        cx={cx} cy={cx} r={r}
+        fill="none" stroke={stroke} strokeWidth="9" strokeLinecap="round"
+        strokeDasharray={c}
+        strokeDashoffset={offset}
+        style={{ transition: "stroke-dashoffset 0.95s linear" }}
+      />
+    </svg>
+  );
 }
 
-function parseRestSeconds(restTimeStr: string): number {
-  const match = restTimeStr.match(/(\d+)/);
-  return match ? Math.max(10, parseInt(match[1])) : 30;
-}
-
-// ─── Guided modal ────────────────────────────────────────────────────────────
+// ─── GuidedModal ─────────────────────────────────────────────────────────────
 
 type GuidedPhase = "exercise" | "rest" | "done";
 
 interface GuidedModalProps {
-  exercise: Exercise;
-  colors: { from: string; to: string; lightBg: string };
-  onClose: () => void;
-  onComplete: () => void;
+  exercise:   Exercise;
+  colors:     { from: string; to: string; lightBg: string };
+  onClose:    () => void;
+  onComplete: (sets: number, durationSecs: number) => void;
 }
 
 function GuidedModal({ exercise, colors, onClose, onComplete }: GuidedModalProps) {
-  const totalSets  = parseSets(exercise.sets);
-  const restSecs   = parseRestSeconds(exercise.restTime);
+  const totalSets   = parseSets(exercise.sets);
+  const restSecs    = parseRestSeconds(exercise.restTime);
+  const exerciseSecs = parseExerciseSeconds(exercise.duration, totalSets);
 
   const [phase,      setPhase]      = useState<GuidedPhase>("exercise");
   const [currentSet, setCurrentSet] = useState(1);
-  const [timer,      setTimer]      = useState(restSecs);
+  const [exTimer,    setExTimer]    = useState(exerciseSecs);  // ejercicio
+  const [restTimer,  setRestTimer]  = useState(restSecs);      // descanso
 
-  // Countdown during rest phase
+  const totalDuration = totalSets * exerciseSecs;
+
+  // ── Temporizador de EJERCICIO ──────────────────────────────────────────────
+  useEffect(() => {
+    if (phase !== "exercise") return;
+    if (exTimer <= 0) {
+      // Tiempo agotado → beep → transición
+      playBeep();
+      const id = setTimeout(() => {
+        if (currentSet >= totalSets) {
+          setPhase("done");
+          onComplete(totalSets, totalDuration);
+        } else {
+          setRestTimer(restSecs);
+          setPhase("rest");
+        }
+      }, 750);
+      return () => clearTimeout(id);
+    }
+    const id = setTimeout(() => setExTimer((t) => t - 1), 1000);
+    return () => clearTimeout(id);
+  }, [phase, exTimer, currentSet, totalSets, restSecs, totalDuration, onComplete]);
+
+  // ── Temporizador de DESCANSO ───────────────────────────────────────────────
   useEffect(() => {
     if (phase !== "rest") return;
-    if (timer <= 0) {
+    if (restTimer <= 0) {
       if (currentSet < totalSets) {
         setCurrentSet((s) => s + 1);
+        setExTimer(exerciseSecs);
         setPhase("exercise");
       } else {
         setPhase("done");
-        onComplete();
+        onComplete(totalSets, totalDuration);
       }
       return;
     }
-    const id = setTimeout(() => setTimer((t) => t - 1), 1000);
+    const id = setTimeout(() => setRestTimer((t) => t - 1), 1000);
     return () => clearTimeout(id);
-  }, [phase, timer, currentSet, totalSets, onComplete]);
+  }, [phase, restTimer, currentSet, totalSets, exerciseSecs, totalDuration, onComplete]);
 
-  const handleSetDone = () => {
+  // Saltar temporizador de ejercicio (manual)
+  const handleSkipExercise = () => {
+    playBeep();
     if (currentSet >= totalSets) {
       setPhase("done");
-      onComplete();
+      onComplete(totalSets, totalDuration);
     } else {
-      setTimer(restSecs);
+      setRestTimer(restSecs);
       setPhase("rest");
     }
   };
 
+  // Saltar descanso
   const handleSkipRest = () => {
     setCurrentSet((s) => s + 1);
+    setExTimer(exerciseSecs);
     setPhase("exercise");
   };
 
-  const restRestLabel = exercise.restTime.split(" entre")[0];
-  const circR = 60;
-  const circC = 2 * Math.PI * circR;
-  const strokeOffset = circC * (1 - timer / restSecs);
+  const restLabel = exercise.restTime.split(" entre")[0];
 
   return (
     <div
       style={{
         position: "fixed", inset: 0, zIndex: 50,
-        background: "rgba(10, 20, 15, 0.72)",
+        background: "rgba(10, 20, 15, 0.75)",
         display: "flex", alignItems: "flex-end",
         fontFamily: "Nunito, sans-serif",
       }}
     >
       <AnimatePresence mode="wait">
 
-        {/* ── EXERCISE PHASE ── */}
+        {/* ═══════════════════ FASE EJERCICIO ═══════════════════ */}
         {phase === "exercise" && (
           <motion.div
             key="exercise"
@@ -124,93 +263,76 @@ function GuidedModal({ exercise, colors, onClose, onComplete }: GuidedModalProps
             }}
           >
             {/* Top row */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-              <span style={{
-                fontSize: "0.82rem", fontWeight: 700, color: "#7A9B87",
-                background: "#E8F0EC", padding: "4px 14px", borderRadius: 20,
-              }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#7A9B87", background: "#E8F0EC", padding: "4px 14px", borderRadius: 20 }}>
                 Serie {currentSet} de {totalSets}
               </span>
-              <button
-                onClick={onClose}
-                style={{
-                  background: "#E8E0EE", border: "none", borderRadius: "50%",
-                  width: 36, height: 36, display: "flex", alignItems: "center",
-                  justifyContent: "center", cursor: "pointer",
-                }}
-              >
+              <button onClick={onClose} style={{ background: "#E8E0EE", border: "none", borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
                 <X style={{ width: 18, height: 18, color: "#7A9B87" }} />
               </button>
             </div>
 
             {/* Exercise name */}
-            <h2 style={{ fontSize: "1.35rem", fontWeight: 900, color: "#1E3A2F", marginBottom: 14, lineHeight: 1.25 }}>
+            <h2 style={{ fontSize: "1.25rem", fontWeight: 900, color: "#1E3A2F", marginBottom: 12, lineHeight: 1.25 }}>
               {exercise.name}
             </h2>
 
-            {/* Sets progress bar */}
-            <div style={{ display: "flex", gap: 6, marginBottom: 22 }}>
+            {/* Progress bars */}
+            <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
               {Array.from({ length: totalSets }).map((_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    height: 6, flex: 1, borderRadius: 3,
-                    background:
-                      i < currentSet - 1 ? colors.from :
-                      i === currentSet - 1 ? colors.to :
-                      "#E0D8EA",
-                    transition: "background 0.3s",
-                  }}
-                />
+                <div key={i} style={{ height: 6, flex: 1, borderRadius: 3, background: i < currentSet - 1 ? colors.from : i === currentSet - 1 ? colors.to : "#E0D8EA", transition: "background 0.3s" }} />
               ))}
             </div>
 
-            {/* Reps display */}
-            <div
-              style={{
-                background: colors.lightBg,
-                border: `1.5px solid ${colors.from}22`,
-                borderRadius: 20,
-                padding: "26px 20px",
-                textAlign: "center",
-                marginBottom: 16,
-              }}
-            >
-              <p style={{ fontSize: "0.78rem", color: colors.from, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 10 }}>
+            {/* ── Circular exercise timer ── */}
+            <div style={{ position: "relative", width: 150, height: 150, margin: "0 auto 14px" }}>
+              <CircularTimer
+                current={exTimer}
+                total={exerciseSecs}
+                stroke={colors.from}
+                trackStroke={`${colors.from}22`}
+              />
+              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontSize: "2.8rem", fontWeight: 900, color: colors.from, lineHeight: 1 }}>{exTimer}</span>
+                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: colors.from, opacity: 0.75 }}>segundos</span>
+              </div>
+            </div>
+
+            {/* Reps info */}
+            <div style={{ background: colors.lightBg, border: `1.5px solid ${colors.from}22`, borderRadius: 16, padding: "14px 18px", textAlign: "center", marginBottom: 12 }}>
+              <p style={{ fontSize: "0.72rem", color: colors.from, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 4 }}>
                 Repeticiones / Tiempo
               </p>
-              <p style={{ fontSize: "1.9rem", fontWeight: 900, color: colors.from, lineHeight: 1.15 }}>
+              <p style={{ fontSize: "1.4rem", fontWeight: 900, color: colors.from, lineHeight: 1.1 }}>
                 {exercise.reps}
               </p>
             </div>
 
-            {/* Rest hint */}
-            <p style={{ textAlign: "center", fontSize: "0.85rem", color: "#7A9B87", fontWeight: 600, marginBottom: 20 }}>
-              ⏱️ Descansa {restRestLabel} entre series
+            <p style={{ textAlign: "center", fontSize: "0.82rem", color: "#7A9B87", fontWeight: 600, marginBottom: 16 }}>
+              ⏱️ Descansa {restLabel} entre series
             </p>
 
-            {/* Done button */}
+            {/* Skip button */}
             <button
-              onClick={handleSetDone}
+              onClick={handleSkipExercise}
               style={{
-                width: "100%", padding: "18px 20px", borderRadius: 20,
+                width: "100%", padding: "16px 20px", borderRadius: 18,
                 background: `linear-gradient(135deg, ${colors.from}, ${colors.to})`,
                 border: "none",
-                boxShadow: `0 6px 20px ${colors.from}44`,
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                cursor: "pointer",
-                fontFamily: "Nunito, sans-serif",
+                boxShadow: `0 4px 16px ${colors.from}44`,
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                cursor: "pointer", fontFamily: "Nunito, sans-serif",
               }}
             >
-              <CheckCircle style={{ width: 24, height: 24, color: "white" }} />
-              <span style={{ fontSize: "1.08rem", fontWeight: 800, color: "white" }}>
-                {currentSet < totalSets ? "✓  Listo, siguiente serie" : "✓  ¡Terminé todas las series!"}
+              <SkipForward style={{ width: 20, height: 20, color: "white" }} />
+              <span style={{ fontSize: "1rem", fontWeight: 800, color: "white" }}>
+                {currentSet < totalSets ? "Saltar a descanso →" : "Ya terminé esta serie"}
               </span>
             </button>
           </motion.div>
         )}
 
-        {/* ── REST PHASE ── */}
+        {/* ═══════════════════ FASE DESCANSO ═══════════════════ */}
         {phase === "rest" && (
           <motion.div
             key="rest"
@@ -226,48 +348,23 @@ function GuidedModal({ exercise, colors, onClose, onComplete }: GuidedModalProps
               textAlign: "center",
             }}
           >
-            {/* Top row */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <span style={{ fontSize: "0.9rem", fontWeight: 800, color: "#1565C0" }}>
                 💪 Serie {currentSet} completada
               </span>
-              <button
-                onClick={onClose}
-                style={{
-                  background: "#C8DEF0", border: "none", borderRadius: "50%",
-                  width: 36, height: 36, display: "flex", alignItems: "center",
-                  justifyContent: "center", cursor: "pointer",
-                }}
-              >
+              <button onClick={onClose} style={{ background: "#C8DEF0", border: "none", borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
                 <X style={{ width: 18, height: 18, color: "#3B9ED4" }} />
               </button>
             </div>
 
-            <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0D3C6E", marginBottom: 24 }}>
+            <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0D3C6E", marginBottom: 22 }}>
               Descansa un momento ☕
             </p>
 
-            {/* Circular countdown */}
-            <div style={{ position: "relative", width: 150, height: 150, margin: "0 auto 24px" }}>
-              <svg width="150" height="150" style={{ transform: "rotate(-90deg)" }}>
-                <circle cx="75" cy="75" r={circR} fill="none" stroke="#C8DEF0" strokeWidth="9" />
-                <circle
-                  cx="75" cy="75" r={circR}
-                  fill="none"
-                  stroke="#3B9ED4"
-                  strokeWidth="9"
-                  strokeLinecap="round"
-                  strokeDasharray={circC}
-                  strokeDashoffset={strokeOffset}
-                  style={{ transition: "stroke-dashoffset 0.95s linear" }}
-                />
-              </svg>
-              <div style={{
-                position: "absolute", inset: 0,
-                display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "center",
-              }}>
-                <span style={{ fontSize: "3rem", fontWeight: 900, color: "#0D3C6E", lineHeight: 1 }}>{timer}</span>
+            <div style={{ position: "relative", width: 150, height: 150, margin: "0 auto 22px" }}>
+              <CircularTimer current={restTimer} total={restSecs} stroke="#3B9ED4" trackStroke="#C8DEF0" />
+              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontSize: "3rem", fontWeight: 900, color: "#0D3C6E", lineHeight: 1 }}>{restTimer}</span>
                 <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#3B9ED4" }}>segundos</span>
               </div>
             </div>
@@ -283,8 +380,7 @@ function GuidedModal({ exercise, colors, onClose, onComplete }: GuidedModalProps
                 background: "linear-gradient(135deg, #3B9ED4, #1565C0)",
                 border: "none",
                 boxShadow: "0 4px 16px rgba(59,158,212,0.35)",
-                cursor: "pointer",
-                fontFamily: "Nunito, sans-serif",
+                cursor: "pointer", fontFamily: "Nunito, sans-serif",
               }}
             >
               <span style={{ fontSize: "1rem", fontWeight: 800, color: "white" }}>
@@ -294,7 +390,7 @@ function GuidedModal({ exercise, colors, onClose, onComplete }: GuidedModalProps
           </motion.div>
         )}
 
-        {/* ── DONE PHASE ── */}
+        {/* ═══════════════════ FASE COMPLETADO ═══════════════════ */}
         {phase === "done" && (
           <motion.div
             key="done"
@@ -309,7 +405,6 @@ function GuidedModal({ exercise, colors, onClose, onComplete }: GuidedModalProps
               textAlign: "center",
             }}
           >
-            {/* Trophy icon */}
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -334,11 +429,7 @@ function GuidedModal({ exercise, colors, onClose, onComplete }: GuidedModalProps
               ¡Ejercicio completado!
             </motion.h2>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.32 }}
-            >
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.32 }}>
               <p style={{ fontSize: "1rem", color: "#4A6754", fontWeight: 600, marginBottom: 2 }}>
                 Hiciste <strong style={{ color: "#3D8A62" }}>{totalSets} {totalSets === 1 ? "serie" : "series"}</strong> de
               </p>
@@ -351,13 +442,7 @@ function GuidedModal({ exercise, colors, onClose, onComplete }: GuidedModalProps
               initial={{ opacity: 0, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.42 }}
-              style={{
-                background: "#E8F5EE",
-                border: "1.5px solid #B7DFC8",
-                borderRadius: 18,
-                padding: "16px 20px",
-                marginBottom: 26,
-              }}
+              style={{ background: "#E8F5EE", border: "1.5px solid #B7DFC8", borderRadius: 18, padding: "16px 20px", marginBottom: 26 }}
             >
               <p style={{ fontSize: "0.95rem", color: "#2E7D52", fontWeight: 700, lineHeight: 1.5 }}>
                 🌟 ¡Excelente trabajo!<br />
@@ -375,8 +460,7 @@ function GuidedModal({ exercise, colors, onClose, onComplete }: GuidedModalProps
                 background: "linear-gradient(135deg, #3D8A62, #5BAF7A)",
                 border: "none",
                 boxShadow: "0 6px 20px rgba(61,138,98,0.3)",
-                cursor: "pointer",
-                fontFamily: "Nunito, sans-serif",
+                cursor: "pointer", fontFamily: "Nunito, sans-serif",
               }}
             >
               <span style={{ fontSize: "1.08rem", fontWeight: 800, color: "white" }}>
@@ -391,37 +475,16 @@ function GuidedModal({ exercise, colors, onClose, onComplete }: GuidedModalProps
   );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
-
-function getTodayStr() {
-  return new Date().toISOString().split("T")[0];
-}
-
-function isCompletedToday(exerciseId: string): boolean {
-  try {
-    const data = JSON.parse(localStorage.getItem("completedExercises") || "{}");
-    return data[exerciseId] === getTodayStr();
-  } catch {
-    return false;
-  }
-}
-
-function markExerciseCompleted(exerciseId: string) {
-  try {
-    const data = JSON.parse(localStorage.getItem("completedExercises") || "{}");
-    data[exerciseId] = getTodayStr();
-    localStorage.setItem("completedExercises", JSON.stringify(data));
-  } catch {}
-}
+// ─── ExerciseDetail page ──────────────────────────────────────────────────────
 
 export function ExerciseDetail() {
   const { exerciseId } = useParams();
   const navigate = useNavigate();
-  const [videoLoaded,  setVideoLoaded]  = useState(false);
-  const [isFavorite,   setIsFavorite]   = useState(false);
-  const [activeTab,    setActiveTab]    = useState<"instructions" | "benefits">("instructions");
-  const [showGuided,   setShowGuided]   = useState(false);
-  const [completedToday, setCompletedToday] = useState(() =>
+  const [videoLoaded,     setVideoLoaded]     = useState(false);
+  const [isFavorite,      setIsFavorite]      = useState(false);
+  const [activeTab,       setActiveTab]       = useState<"instructions" | "benefits">("instructions");
+  const [showGuided,      setShowGuided]      = useState(false);
+  const [completedToday,  setCompletedToday]  = useState(() =>
     exerciseId ? isCompletedToday(exerciseId) : false
   );
 
@@ -437,42 +500,28 @@ export function ExerciseDetail() {
 
   const category = categories.find((c) => c.id === exercise.categoryId);
   const colors   = getCategoryColors(exercise.categoryId);
-
   const painLevelText  = exercise.maxPainLevel <= 2 ? "Muy suave" : exercise.maxPainLevel <= 3 ? "Leve" : "Moderado";
-  const painLevelColor = exercise.maxPainLevel <= 2 ? "#2E7D52"   : exercise.maxPainLevel <= 3 ? "#E65100" : "#C62828";
+  const painLevelColor = exercise.maxPainLevel <= 2 ? "#2E7D52" : exercise.maxPainLevel <= 3 ? "#E65100" : "#C62828";
 
-  const handleComplete = () => {
+  const handleComplete = (sets: number, durationSecs: number) => {
     markExerciseCompleted(exercise.id);
     setCompletedToday(true);
+    saveSessionToSupabase(exercise.id, exercise.name, sets, durationSecs);
   };
 
   return (
     <div className="min-h-screen pb-10" style={{ background: "#F6FAF7", fontFamily: "Nunito, sans-serif" }}>
 
       {/* Header */}
-      <div
-        className="px-5 pt-12 pb-5 relative"
-        style={{ background: `linear-gradient(160deg, ${colors.from}, ${colors.to})` }}
-      >
+      <div className="px-5 pt-12 pb-5 relative" style={{ background: `linear-gradient(160deg, ${colors.from}, ${colors.to})` }}>
         <div className="flex items-center justify-between mb-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center active:scale-90 transition-transform"
-          >
+          <button onClick={() => navigate(-1)} className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center active:scale-90 transition-transform">
             <ChevronLeft className="w-5 h-5 text-white" />
           </button>
-          <button
-            onClick={() => setIsFavorite(!isFavorite)}
-            className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center active:scale-90 transition-transform"
-          >
-            <Heart
-              className="w-5 h-5"
-              style={{ color: isFavorite ? "#FFB3B3" : "white" }}
-              fill={isFavorite ? "#FFB3B3" : "transparent"}
-            />
+          <button onClick={() => setIsFavorite(!isFavorite)} className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center active:scale-90 transition-transform">
+            <Heart className="w-5 h-5" style={{ color: isFavorite ? "#FFB3B3" : "white" }} fill={isFavorite ? "#FFB3B3" : "transparent"} />
           </button>
         </div>
-
         <div className="flex items-center gap-2 mb-2">
           <span style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.75)", fontWeight: 600, background: "rgba(255,255,255,0.2)", padding: "3px 10px", borderRadius: "20px" }}>
             {category?.emoji} {category?.name}
@@ -481,19 +530,16 @@ export function ExerciseDetail() {
             {exercise.difficulty}
           </span>
         </div>
-
-        <h1 style={{ fontSize: "1.6rem", fontWeight: 800, color: "white", lineHeight: 1.2 }}>
-          {exercise.name}
-        </h1>
+        <h1 style={{ fontSize: "1.6rem", fontWeight: 800, color: "white", lineHeight: 1.2 }}>{exercise.name}</h1>
       </div>
 
       <div className="px-5">
         {/* Info Cards */}
         <div className="flex gap-2 mt-4 mb-5">
-          <InfoCard icon={<Clock    className="w-5 h-5" style={{ color: colors.from }} />} label="Duración" value={exercise.duration}                                   lightBg={colors.lightBg} textColor={colors.from} />
+          <InfoCard icon={<Clock     className="w-5 h-5" style={{ color: colors.from }} />} label="Duración" value={exercise.duration}                                   lightBg={colors.lightBg} textColor={colors.from} />
           <InfoCard icon={<RotateCcw className="w-5 h-5" style={{ color: colors.from }} />} label="Reps"     value={exercise.reps}                                      lightBg={colors.lightBg} textColor={colors.from} />
-          <InfoCard icon={<Star     className="w-5 h-5" style={{ color: colors.from }} />} label="Series"   value={exercise.sets}                                      lightBg={colors.lightBg} textColor={colors.from} />
-          <InfoCard icon={<Pause    className="w-5 h-5" style={{ color: colors.from }} />} label="Descanso" value={exercise.restTime.split(" ").slice(0, 2).join(" ")} lightBg={colors.lightBg} textColor={colors.from} />
+          <InfoCard icon={<Star      className="w-5 h-5" style={{ color: colors.from }} />} label="Series"   value={exercise.sets}                                      lightBg={colors.lightBg} textColor={colors.from} />
+          <InfoCard icon={<Pause     className="w-5 h-5" style={{ color: colors.from }} />} label="Descanso" value={exercise.restTime.split(" ").slice(0, 2).join(" ")} lightBg={colors.lightBg} textColor={colors.from} />
         </div>
 
         {/* Pain Level */}
@@ -505,25 +551,19 @@ export function ExerciseDetail() {
             <p style={{ fontSize: "0.82rem", color: "#7A9B87", fontWeight: 600 }}>Dolor máximo recomendado</p>
             <div className="flex items-center gap-2 mt-1">
               <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((i) => (
+                {[1,2,3,4,5].map((i) => (
                   <div key={i} className="w-2.5 h-2.5 rounded-full" style={{ background: i <= exercise.maxPainLevel ? painLevelColor : "#E0EDE5" }} />
                 ))}
               </div>
-              <span style={{ fontSize: "0.88rem", fontWeight: 700, color: painLevelColor }}>
-                {exercise.maxPainLevel}/5 – {painLevelText}
-              </span>
+              <span style={{ fontSize: "0.88rem", fontWeight: 700, color: painLevelColor }}>{exercise.maxPainLevel}/5 – {painLevelText}</span>
             </div>
-            <p style={{ fontSize: "0.78rem", color: "#7A9B87", fontWeight: 500, marginTop: "2px" }}>
-              Si el dolor supera este nivel, detén el ejercicio
-            </p>
+            <p style={{ fontSize: "0.78rem", color: "#7A9B87", fontWeight: 500, marginTop: "2px" }}>Si el dolor supera este nivel, detén el ejercicio</p>
           </div>
         </div>
 
         {/* Video */}
         <div className="mb-5">
-          <h3 style={{ fontSize: "1.08rem", fontWeight: 800, color: "#1E3A2F", marginBottom: "12px" }}>
-            🎬 Video Demostrativo
-          </h3>
+          <h3 style={{ fontSize: "1.08rem", fontWeight: 800, color: "#1E3A2F", marginBottom: "12px" }}>🎬 Video Demostrativo</h3>
           <div className="rounded-2xl overflow-hidden shadow-md relative" style={{ paddingBottom: "56.25%", background: "#1A1A2E" }}>
             {!exercise.videoId ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6" style={{ background: `linear-gradient(160deg, ${colors.from}22, ${colors.to}33)`, border: `2px dashed ${colors.from}55`, borderRadius: "16px" }}>
@@ -556,7 +596,6 @@ export function ExerciseDetail() {
           ))}
         </div>
 
-        {/* Tab content */}
         <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }} className="rounded-2xl p-5 mb-4" style={{ background: "white", border: "1.5px solid #E8F5EE" }}>
           {activeTab === "instructions" && (
             <div>
@@ -587,16 +626,9 @@ export function ExerciseDetail() {
 
         {/* Completed badge */}
         {completedToday && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center gap-3 rounded-2xl px-5 py-3 mb-3"
-            style={{ background: "#E8F5EE", border: "1.5px solid #B7DFC8" }}
-          >
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-3 rounded-2xl px-5 py-3 mb-3" style={{ background: "#E8F5EE", border: "1.5px solid #B7DFC8" }}>
             <CheckCircle className="w-5 h-5" style={{ color: "#3D8A62", flexShrink: 0 }} />
-            <p style={{ fontSize: "0.9rem", fontWeight: 700, color: "#2E7D52" }}>
-              ¡Completado hoy! Puedes hacerlo de nuevo si quieres.
-            </p>
+            <p style={{ fontSize: "0.9rem", fontWeight: 700, color: "#2E7D52" }}>¡Completado hoy! Puedes hacerlo de nuevo si quieres.</p>
           </motion.div>
         )}
 
@@ -605,13 +637,9 @@ export function ExerciseDetail() {
           onClick={() => setShowGuided(true)}
           className="w-full py-5 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg"
           style={{
-            background: completedToday
-              ? "linear-gradient(135deg, #3D8A62, #5BAF7A)"
-              : `linear-gradient(135deg, ${colors.from}, ${colors.to})`,
+            background: completedToday ? "linear-gradient(135deg, #3D8A62, #5BAF7A)" : `linear-gradient(135deg, ${colors.from}, ${colors.to})`,
             border: "none",
-            boxShadow: completedToday
-              ? "0 6px 20px rgba(61,138,98,0.4)"
-              : `0 6px 20px ${colors.from}55`,
+            boxShadow: completedToday ? "0 6px 20px rgba(61,138,98,0.4)" : `0 6px 20px ${colors.from}55`,
           }}
         >
           {completedToday
@@ -628,7 +656,6 @@ export function ExerciseDetail() {
         </p>
       </div>
 
-      {/* Guided modal */}
       {showGuided && (
         <GuidedModal
           exercise={exercise}

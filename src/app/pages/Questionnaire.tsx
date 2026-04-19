@@ -4,7 +4,27 @@ import { motion, AnimatePresence } from "motion/react";
 import { ChevronLeft, Check, ChevronRight, Loader2 } from "lucide-react";
 import { questions } from "../data/questionnaire";
 import { sendQuestionnaireEmail, EMAILJS_CONFIG } from "../utils/emailService";
-import { checkMedicalWarning } from "../data/exercises";
+import { checkMedicalWarning, deriveUserPainLevel } from "../data/exercises";
+import { supabase, getUserId } from "../../lib/supabase";
+
+async function saveProfileToSupabase(answers: Record<string, string | string[]>) {
+  try {
+    const { error } = await supabase.from("perfiles_usuario").insert({
+      usuario_id:       getUserId(),
+      nombre:           (answers.name     as string) || "",
+      edad:             (answers.age      as string) || "",
+      movilidad:        (answers.walkingAid as string) || (answers.mobility as string) || "",
+      nivel_dolor:      deriveUserPainLevel(answers),
+      zonas_dolor:      (answers.painAreas  as string[]) || [],
+      nivel_energia:    (answers.energy   as string) || "",
+      historial_caidas: (answers.falls    as string) || "",
+      objetivos:        (answers.goals    as string[]) || [],
+    });
+    if (error) console.warn("[Supabase] perfil:", error.message);
+  } catch {
+    // Supabase no disponible — localStorage ya tiene el dato
+  }
+}
 
 export function Questionnaire() {
   const navigate = useNavigate();
@@ -67,6 +87,7 @@ export function Questionnaire() {
     } else {
       // Save profile and send email notification
       localStorage.setItem("userProfile", JSON.stringify(updatedAnswers));
+      saveProfileToSupabase(updatedAnswers);
       const needsWarning = checkMedicalWarning(updatedAnswers);
       setIsSending(true);
       sendQuestionnaireEmail(updatedAnswers).then(({ success }) => {

@@ -740,7 +740,7 @@ const STANDING_EXERCISE_IDS = new Set([
   "flexiones-pared",
 ]);
 
-function deriveUserPainLevel(profile: Record<string, string | string[]>): number {
+export function deriveUserPainLevel(profile: Record<string, string | string[]>): number {
   const painAreas = (profile.painAreas as string[]) || [];
   const stiffness = profile.stiffness as string;
 

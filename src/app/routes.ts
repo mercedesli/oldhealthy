@@ -1,4 +1,5 @@
 import { createBrowserRouter } from "react-router";
+import { AppLayout } from "./components/AppLayout";
 import { Welcome } from "./pages/Welcome";
 import { Questionnaire } from "./pages/Questionnaire";
 import { Home } from "./pages/Home";
@@ -8,31 +9,15 @@ import { MedicalWarning } from "./pages/MedicalWarning";
 
 export const router = createBrowserRouter([
   {
-    path: "/",
-    Component: Welcome,
-  },
-  {
-    path: "/cuestionario",
-    Component: Questionnaire,
-  },
-  {
-    path: "/aviso-medico",
-    Component: MedicalWarning,
-  },
-  {
-    path: "/inicio",
-    Component: Home,
-  },
-  {
-    path: "/categoria/:categoryId",
-    Component: CategoryExercises,
-  },
-  {
-    path: "/ejercicio/:exerciseId",
-    Component: ExerciseDetail,
-  },
-  {
-    path: "*",
-    Component: Welcome,
+    Component: AppLayout,
+    children: [
+      { path: "/",                         Component: Welcome },
+      { path: "/cuestionario",             Component: Questionnaire },
+      { path: "/aviso-medico",             Component: MedicalWarning },
+      { path: "/inicio",                   Component: Home },
+      { path: "/categoria/:categoryId",    Component: CategoryExercises },
+      { path: "/ejercicio/:exerciseId",    Component: ExerciseDetail },
+      { path: "*",                         Component: Welcome },
+    ],
   },
 ]);
