@@ -130,6 +130,13 @@ export function Questionnaire() {
               Pregunta {currentStep + 1} de {questions.length}
             </p>
           </div>
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("restart-tutorial"))}
+            title="Ver tutorial de nuevo"
+            style={{ fontSize: "0.72rem", fontWeight: 700, color: "#3B9ED4", background: "#EAF6FF", border: "none", borderRadius: 10, padding: "5px 10px", cursor: "pointer", fontFamily: "Nunito, sans-serif" }}
+          >
+            📖 Tutorial
+          </button>
           <span style={{ fontSize: "0.82rem", color: "#3B9ED4", fontWeight: 700 }}>
             {Math.round(progress)}%
           </span>

@@ -1,6 +1,7 @@
 import { Outlet, useNavigate, useLocation } from "react-router";
 import { useState, useEffect } from "react";
 import { Heart } from "lucide-react";
+import { OnboardingTutorial } from "./OnboardingTutorial";
 
 type Breakpoint = "mobile" | "tablet" | "desktop";
 
@@ -27,7 +28,9 @@ const NAV_ITEMS = [
   { path: "/categoria/core",                   label: "Core",              icon: "💪" },
   { path: "/categoria/brazos-superior",        label: "Brazos",            icon: "🤲" },
   { path: "/categoria/movilidad-flexibilidad", label: "Flexibilidad",      icon: "🧘" },
+  { path: "/rutina-semanal",                   label: "Rutina semanal",    icon: "🗓️" },
   { path: "/resumen-semanal",                  label: "Resumen semanal",   icon: "📊" },
+  { path: "/reporte-medico",                   label: "Reporte médico",    icon: "🩺" },
 ];
 
 // ── Full sidebar (desktop ≥1024px) ──────────────────────────────────────────
@@ -159,20 +162,39 @@ function CompactSidebar() {
 export function AppLayout() {
   const bp = useBreakpoint();
 
-  if (bp === "mobile") {
-    return (
-      <div style={{ minHeight: "100vh", background: "#F7F4F8" }}>
-        <Outlet />
-      </div>
-    );
-  }
+  const [showTutorial, setShowTutorial] = useState(
+    () => !localStorage.getItem("onboardingDone")
+  );
 
-  return (
+  // Allow any page to re-trigger the tutorial
+  useEffect(() => {
+    const handler = () => setShowTutorial(true);
+    window.addEventListener("restart-tutorial", handler);
+    return () => window.removeEventListener("restart-tutorial", handler);
+  }, []);
+
+  const handleTutorialComplete = () => {
+    localStorage.setItem("onboardingDone", "1");
+    setShowTutorial(false);
+  };
+
+  const content = bp === "mobile" ? (
+    <div style={{ minHeight: "100vh", background: "#F7F4F8" }}>
+      <Outlet />
+    </div>
+  ) : (
     <div style={{ display: "flex", minHeight: "100vh", background: "#EAF2EC" }}>
       {bp === "desktop" ? <FullSidebar /> : <CompactSidebar />}
       <main style={{ flex: 1, minHeight: "100vh", background: "#F7F4F8", overflowY: "auto" }}>
         <Outlet />
       </main>
     </div>
+  );
+
+  return (
+    <>
+      {content}
+      {showTutorial && <OnboardingTutorial onComplete={handleTutorialComplete} />}
+    </>
   );
 }
