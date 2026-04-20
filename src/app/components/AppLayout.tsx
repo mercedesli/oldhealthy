@@ -3,6 +3,86 @@ import { useState, useEffect } from "react";
 import { Heart } from "lucide-react";
 import { OnboardingTutorial } from "./OnboardingTutorial";
 
+const BOTTOM_NAV = [
+  { path: "/inicio",          label: "Inicio",      icon: "🏠" },
+  { path: "/categorias",      label: "Categorías",  icon: "📂" },
+  { path: "/centros-salud",   label: "Centros",     icon: "🏥" },
+  { path: "/perfil",          label: "Perfil",      icon: "👤" },
+  { path: "/resumen-semanal", label: "Resumen",     icon: "📊" },
+];
+
+function BottomNav() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  return (
+    <nav
+      style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 64,
+        background: "white",
+        borderTop: "1.5px solid #E8F0EC",
+        display: "flex",
+        zIndex: 100,
+        boxShadow: "0 -2px 16px rgba(0,0,0,0.07)",
+        fontFamily: "Nunito, sans-serif",
+      }}
+    >
+      {BOTTOM_NAV.map((item) => {
+        const isActive = location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
+        return (
+          <button
+            key={item.path}
+            onClick={() => navigate(item.path)}
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 2,
+              border: "none",
+              background: "transparent",
+              cursor: "pointer",
+              padding: "6px 0 8px",
+              position: "relative",
+            }}
+          >
+            {isActive && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: 32,
+                  height: 3,
+                  borderRadius: "0 0 4px 4px",
+                  background: "linear-gradient(90deg, #3D8A62, #3B9ED4)",
+                }}
+              />
+            )}
+            <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>{item.icon}</span>
+            <span
+              style={{
+                fontSize: "0.62rem",
+                fontWeight: isActive ? 800 : 600,
+                color: isActive ? "#3D8A62" : "#9A8EAA",
+                lineHeight: 1,
+              }}
+            >
+              {item.label}
+            </span>
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
 type Breakpoint = "mobile" | "tablet" | "desktop";
 
 function useBreakpoint(): Breakpoint {
@@ -180,9 +260,12 @@ export function AppLayout() {
   };
 
   const content = bp === "mobile" ? (
-    <div style={{ minHeight: "100vh", background: "#F7F4F8" }}>
-      <Outlet />
-    </div>
+    <>
+      <div style={{ minHeight: "100vh", background: "#F7F4F8", paddingBottom: 64 }}>
+        <Outlet />
+      </div>
+      <BottomNav />
+    </>
   ) : (
     <div style={{ display: "flex", minHeight: "100vh", background: "#EAF2EC" }}>
       {bp === "desktop" ? <FullSidebar /> : <CompactSidebar />}

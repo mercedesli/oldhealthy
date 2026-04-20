@@ -11,6 +11,7 @@ import { WeeklyRoutine } from "./pages/WeeklyRoutine";
 import { MedicalReport } from "./pages/MedicalReport";
 import { Profile } from "./pages/Profile";
 import { MedicalCenters } from "./pages/MedicalCenters";
+import { Categories } from "./pages/Categories";
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
       { path: "/rutina-semanal",           Component: WeeklyRoutine },
       { path: "/reporte-medico",           Component: MedicalReport },
       { path: "/centros-salud",            Component: MedicalCenters },
+      { path: "/categorias",              Component: Categories },
       { path: "*",                         Component: Welcome },
     ],
   },
