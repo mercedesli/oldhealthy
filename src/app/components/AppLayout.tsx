@@ -31,6 +31,7 @@ const NAV_ITEMS = [
   { path: "/rutina-semanal",                   label: "Rutina semanal",    icon: "🗓️" },
   { path: "/resumen-semanal",                  label: "Resumen semanal",   icon: "📊" },
   { path: "/reporte-medico",                   label: "Reporte médico",    icon: "🩺" },
+  { path: "/centros-salud",                    label: "Centros de Salud",  icon: "🏥" },
 ];
 
 // ── Full sidebar (desktop ≥1024px) ──────────────────────────────────────────
