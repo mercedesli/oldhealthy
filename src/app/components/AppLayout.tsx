@@ -23,7 +23,7 @@ function useBreakpoint(): Breakpoint {
 
 const NAV_ITEMS = [
   { path: "/inicio",                           label: "Inicio",            icon: "🏠" },
-  { path: "/cuestionario",                     label: "Mi perfil",         icon: "📋" },
+  { path: "/perfil",                           label: "Mi perfil",         icon: "📋" },
   { path: "/categoria/piernas-gluteos",        label: "Piernas y Glúteos", icon: "🦵" },
   { path: "/categoria/core",                   label: "Core",              icon: "💪" },
   { path: "/categoria/brazos-superior",        label: "Brazos",            icon: "🤲" },

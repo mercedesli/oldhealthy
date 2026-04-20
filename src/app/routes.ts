@@ -9,6 +9,7 @@ import { MedicalWarning } from "./pages/MedicalWarning";
 import { WeeklySummary } from "./pages/WeeklySummary";
 import { WeeklyRoutine } from "./pages/WeeklyRoutine";
 import { MedicalReport } from "./pages/MedicalReport";
+import { Profile } from "./pages/Profile";
 
 export const router = createBrowserRouter([
   {
@@ -21,6 +22,7 @@ export const router = createBrowserRouter([
       { path: "/categoria/:categoryId",    Component: CategoryExercises },
       { path: "/ejercicio/:exerciseId",    Component: ExerciseDetail },
       { path: "/resumen-semanal",          Component: WeeklySummary },
+      { path: "/perfil",                    Component: Profile },
       { path: "/rutina-semanal",           Component: WeeklyRoutine },
       { path: "/reporte-medico",           Component: MedicalReport },
       { path: "*",                         Component: Welcome },

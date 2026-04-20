@@ -123,11 +123,18 @@ function DayCard({ day, index }: { day: RoutineDay; index: number }) {
   );
 }
 
+const MAX_RETRIES = 3;
+
+function sleep(ms: number) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
 export function WeeklyRoutine() {
   const navigate = useNavigate();
-  const [routine, setRoutine] = useState<WeeklyRoutineData | null>(() => loadCached());
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [routine,  setRoutine]  = useState<WeeklyRoutineData | null>(() => loadCached());
+  const [loading,  setLoading]  = useState(false);
+  const [attempt,  setAttempt]  = useState(0);
+  const [error,    setError]    = useState(false);
 
   const profile = (() => {
     try { return JSON.parse(localStorage.getItem("userProfile") || "{}"); } catch { return {}; }
@@ -136,12 +143,19 @@ export function WeeklyRoutine() {
   const handleGenerate = async () => {
     setLoading(true);
     setError(false);
+    setAttempt(0);
 
-    const history = getSessionHistory();
+    const history   = getSessionHistory();
     const recentIds = history.slice(-8).map(s => s.exerciseId);
-    const streaks = loadStreaks();
+    const streaks   = loadStreaks();
 
-    const result = await generateWeeklyRoutine(profile, recentIds, streaks.current, exercises);
+    let result = null;
+    for (let i = 0; i < MAX_RETRIES; i++) {
+      setAttempt(i + 1);
+      result = await generateWeeklyRoutine(profile, recentIds, streaks.current, exercises);
+      if (result) break;
+      if (i < MAX_RETRIES - 1) await sleep(1200);
+    }
 
     setLoading(false);
     if (result) {
@@ -198,7 +212,11 @@ export function WeeklyRoutine() {
           {loading ? (
             <>
               <Loader2 style={{ width: 20, height: 20, color: "#9A8EAA" }} className="animate-spin" />
-              <span style={{ fontSize: "1rem", fontWeight: 700, color: "#9A8EAA" }}>Creando tu rutina personalizada...</span>
+              <span style={{ fontSize: "1rem", fontWeight: 700, color: "#9A8EAA" }}>
+                {attempt < 2
+                  ? "Creando tu rutina personalizada..."
+                  : `Reintentando... (${attempt}/${MAX_RETRIES})`}
+              </span>
             </>
           ) : (
             <>
