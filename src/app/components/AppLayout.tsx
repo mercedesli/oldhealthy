@@ -2,6 +2,7 @@ import { Outlet, useNavigate, useLocation } from "react-router";
 import { useState, useEffect } from "react";
 import { Heart } from "lucide-react";
 import { OnboardingTutorial } from "./OnboardingTutorial";
+import { initNotifications } from "../../lib/notifications";
 
 const BOTTOM_NAV = [
   { path: "/inicio",          label: "Inicio",      icon: "🏠" },
@@ -246,6 +247,9 @@ export function AppLayout() {
   const [showTutorial, setShowTutorial] = useState(
     () => !localStorage.getItem("onboardingDone")
   );
+
+  // Initialize OneSignal push notifications once on mount
+  useEffect(() => { initNotifications(); }, []);
 
   // Allow any page to re-trigger the tutorial
   useEffect(() => {
