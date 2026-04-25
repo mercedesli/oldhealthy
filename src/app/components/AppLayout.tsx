@@ -1,6 +1,6 @@
 import { Outlet, useNavigate, useLocation } from "react-router";
 import { useState, useEffect } from "react";
-import { Heart, Home, LayoutGrid, Building2, User, BarChart2, type LucideIcon } from "lucide-react";
+import { Heart, Home, LayoutGrid, Building2, User, BarChart2, ClipboardList, Dumbbell, Target, Wind, Stethoscope, Calendar, type LucideIcon } from "lucide-react";
 import { OnboardingTutorial } from "./OnboardingTutorial";
 import { initNotifications } from "../../lib/notifications";
 
@@ -106,17 +106,17 @@ function useBreakpoint(): Breakpoint {
   return bp;
 }
 
-const NAV_ITEMS = [
-  { path: "/inicio",                           label: "Inicio",            icon: "🏠" },
-  { path: "/perfil",                           label: "Mi perfil",         icon: "📋" },
-  { path: "/categoria/piernas-gluteos",        label: "Piernas y Glúteos", icon: "🦵" },
-  { path: "/categoria/core",                   label: "Core",              icon: "💪" },
-  { path: "/categoria/brazos-superior",        label: "Brazos",            icon: "🤲" },
-  { path: "/categoria/movilidad-flexibilidad", label: "Flexibilidad",      icon: "🧘" },
-  { path: "/rutina-semanal",                   label: "Rutina semanal",    icon: "🗓️" },
-  { path: "/resumen-semanal",                  label: "Resumen semanal",   icon: "📊" },
-  { path: "/reporte-medico",                   label: "Reporte médico",    icon: "🩺" },
-  { path: "/centros-salud",                    label: "Centros de Salud",  icon: "🏥" },
+const NAV_ITEMS: { path: string; label: string; Icon: LucideIcon }[] = [
+  { path: "/inicio",                           label: "Inicio",            Icon: Home },
+  { path: "/perfil",                           label: "Mi perfil",         Icon: ClipboardList },
+  { path: "/categoria/piernas-gluteos",        label: "Piernas y Glúteos", Icon: Dumbbell },
+  { path: "/categoria/core",                   label: "Core",              Icon: Target },
+  { path: "/categoria/brazos-superior",        label: "Brazos",            Icon: Dumbbell },
+  { path: "/categoria/movilidad-flexibilidad", label: "Flexibilidad",      Icon: Wind },
+  { path: "/rutina-semanal",                   label: "Rutina semanal",    Icon: Calendar },
+  { path: "/resumen-semanal",                  label: "Resumen semanal",   Icon: BarChart2 },
+  { path: "/reporte-medico",                   label: "Reporte médico",    Icon: Stethoscope },
+  { path: "/centros-salud",                    label: "Centros de Salud",  Icon: Building2 },
 ];
 
 // ── Sidebar completo (escritorio ≥1024px) ───────────────────────────────────
@@ -166,7 +166,7 @@ function FullSidebar() {
       {profile.name && (
         <div style={{ background: "rgba(255,255,255,0.09)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 14, padding: "12px 14px", marginBottom: 24 }}>
           <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.75rem", fontWeight: 600, margin: 0 }}>Bienvenido/a,</p>
-          <p style={{ color: "white", fontSize: "1.05rem", fontWeight: 800, margin: "2px 0 0" }}>{profile.name} 👋</p>
+          <p style={{ color: "white", fontSize: "1.05rem", fontWeight: 800, margin: "2px 0 0" }}>{profile.name}</p>
         </div>
       )}
 
@@ -183,7 +183,7 @@ function FullSidebar() {
               onClick={() => navigate(item.path)}
               style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 12, border: "none", background: isActive ? "rgba(255,255,255,0.14)" : "transparent", cursor: "pointer", textAlign: "left", transition: "background 0.2s" }}
             >
-              <span style={{ fontSize: "1.05rem", lineHeight: 1 }}>{item.icon}</span>
+              <item.Icon size={18} color={isActive ? "white" : "rgba(255,255,255,0.62)"} />
               <span style={{ color: isActive ? "white" : "rgba(255,255,255,0.62)", fontSize: "0.9rem", fontWeight: isActive ? 800 : 600, fontFamily: "Nunito, sans-serif" }}>
                 {item.label}
               </span>
@@ -234,7 +234,7 @@ function CompactSidebar() {
               title={item.label}
               style={{ width: "100%", height: 48, borderRadius: 12, border: "none", background: isActive ? "rgba(255,255,255,0.14)" : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }}
             >
-              <span style={{ fontSize: "1.25rem" }}>{item.icon}</span>
+              <item.Icon size={20} color={isActive ? "white" : "rgba(255,255,255,0.62)"} />
             </button>
           );
         })}

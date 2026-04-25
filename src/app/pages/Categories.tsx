@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router";
 import { motion } from "motion/react";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, LayoutGrid } from "lucide-react";
 import { categories, exercises } from "../data/exercises";
 
 const COLORS: Record<string, { from: string; to: string; light: string }> = {
@@ -17,8 +17,8 @@ export function Categories() {
     <div style={{ minHeight: "100vh", background: "#F7F4F8", fontFamily: "Nunito, sans-serif", paddingBottom: 88 }}>
       {/* Header */}
       <div style={{ background: "linear-gradient(135deg, #3D8A62 0%, #3B9ED4 100%)", padding: "52px 24px 28px" }}>
-        <h1 style={{ color: "white", fontSize: "1.7rem", fontWeight: 900, margin: 0, lineHeight: 1.2 }}>
-          📋 Categorías
+        <h1 style={{ color: "white", fontSize: "1.7rem", fontWeight: 900, margin: 0, lineHeight: 1.2, display: "flex", alignItems: "center", gap: 10 }}>
+          <LayoutGrid size={26} color="white" /> Categorías
         </h1>
         <p style={{ color: "rgba(255,255,255,0.78)", fontSize: "0.9rem", fontWeight: 600, margin: "6px 0 0" }}>
           Elige la zona del cuerpo que quieres trabajar

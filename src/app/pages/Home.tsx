@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "motion/react";
-import { Heart, Star, ChevronRight, Award, BarChart2, Loader2, Calendar } from "lucide-react";
+import { Heart, Star, ChevronRight, Award, BarChart2, Loader2, Calendar, Zap, Smile, Moon, Frown, Bot, Flame, MessageCircle, Stethoscope, Activity, ClipboardList, type LucideIcon } from "lucide-react";
 import { categories, exercises, getRecommendedExercises } from "../data/exercises";
 import { loadStreaks, getSessionHistory } from "../../lib/streaks";
 import {
@@ -36,11 +36,11 @@ function DifficultyBadge({ difficulty }: { difficulty: string }) {
   );
 }
 
-const MOODS = [
-  { label: "Con energía", emoji: "⚡", color: "#3D8A62" },
-  { label: "Normal",      emoji: "😊", color: "#3B9ED4" },
-  { label: "Cansado/a",  emoji: "😴", color: "#7B52AB" },
-  { label: "Con dolor",  emoji: "🤕", color: "#E8648A" },
+const MOODS: { label: string; Icon: LucideIcon; color: string }[] = [
+  { label: "Con energía", Icon: Zap,   color: "#3D8A62" },
+  { label: "Normal",      Icon: Smile, color: "#3B9ED4" },
+  { label: "Cansado/a",  Icon: Moon,  color: "#7B52AB" },
+  { label: "Con dolor",  Icon: Frown, color: "#E8648A" },
 ];
 
 // ── Componente principal ──────────────────────────────────────────────────────
@@ -172,7 +172,7 @@ export function Home() {
         <div className="flex items-start justify-between mb-4">
           <div>
             <p style={{ fontSize: "1rem", color: "rgba(255,255,255,0.85)", fontWeight: 600, marginBottom: 2 }}>{getGreeting()},</p>
-            <h1 style={{ fontSize: "1.8rem", color: "white", fontWeight: 800, lineHeight: 1.2 }}>{userName}! 👋</h1>
+            <h1 style={{ fontSize: "1.8rem", color: "white", fontWeight: 800, lineHeight: 1.2 }}>{userName}!</h1>
             <p style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.78)", fontWeight: 500, marginTop: 4 }}>Listos tus ejercicios personalizados</p>
           </div>
           <div className="flex flex-col items-center gap-1">
@@ -183,14 +183,14 @@ export function Home() {
           </div>
         </div>
         <div className="flex gap-3 mt-2">
-          {[
-            { label: "Ejercicios", value: `${exercises.length}`, emoji: "🏃" },
-            { label: "Categorías",  value: "4",                  emoji: "📋" },
-            { label: "Para ti",     value: `${displayedExercises.length}`, emoji: "⭐" },
-          ].map(stat => (
+          {([
+            { label: "Ejercicios", value: `${exercises.length}`, Icon: Activity },
+            { label: "Categorías",  value: "4",                  Icon: ClipboardList },
+            { label: "Para ti",     value: `${displayedExercises.length}`, Icon: Star },
+          ] as { label: string; value: string; Icon: LucideIcon }[]).map(stat => (
             <div key={stat.label} className="flex-1 py-3 px-3 rounded-2xl flex flex-col items-center" style={{ background: "rgba(255,255,255,0.15)" }}>
-              <span style={{ fontSize: "1.1rem" }}>{stat.emoji}</span>
-              <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "white", lineHeight: 1 }}>{stat.value}</span>
+              <stat.Icon size={18} color="rgba(255,255,255,0.9)" />
+              <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "white", lineHeight: 1, marginTop: 2 }}>{stat.value}</span>
               <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.82)", fontWeight: 600 }}>{stat.label}</span>
             </div>
           ))}
@@ -208,7 +208,7 @@ export function Home() {
         >
           <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
             <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <span style={{ fontSize: "1.3rem" }}>🤖</span>
+              <Bot size={20} color="rgba(255,255,255,0.9)" />
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.55)", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>Tu coach diario</p>
@@ -237,7 +237,7 @@ export function Home() {
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: "1.5rem" }}>🔥</span>
+              <Flame size={24} color="#F97316" />
               <div>
                 <p style={{ fontSize: "1.1rem", fontWeight: 900, color: "#1E3A2F", margin: 0, lineHeight: 1 }}>
                   {streaks.current} {streaks.current === 1 ? "día" : "días"} de racha
@@ -282,21 +282,24 @@ export function Home() {
             ¿Cómo te sientes hoy?
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: customMood !== undefined ? 0 : 0 }}>
-            {MOODS.map(m => (
-              <button
-                key={m.label}
-                onClick={() => { setCustomMood(""); handleMoodSelect(m.label); }}
-                style={{
-                  padding: "8px 14px", borderRadius: 20, border: `2px solid ${mood === m.label ? m.color : "#E8E0EE"}`,
-                  background: mood === m.label ? `${m.color}15` : "white",
-                  cursor: "pointer", fontFamily: "Nunito, sans-serif",
-                  display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
-                }}
-              >
-                <span style={{ fontSize: "1rem" }}>{m.emoji}</span>
-                <span style={{ fontSize: "0.82rem", fontWeight: 700, color: mood === m.label ? m.color : "#4A6754" }}>{m.label}</span>
-              </button>
-            ))}
+            {MOODS.map(m => {
+              const MoodIcon = m.Icon;
+              return (
+                <button
+                  key={m.label}
+                  onClick={() => { setCustomMood(""); handleMoodSelect(m.label); }}
+                  style={{
+                    padding: "8px 14px", borderRadius: 20, border: `2px solid ${mood === m.label ? m.color : "#E8E0EE"}`,
+                    background: mood === m.label ? `${m.color}15` : "white",
+                    cursor: "pointer", fontFamily: "Nunito, sans-serif",
+                    display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
+                  }}
+                >
+                  <MoodIcon size={16} color={mood === m.label ? m.color : "#9A8EAA"} />
+                  <span style={{ fontSize: "0.82rem", fontWeight: 700, color: mood === m.label ? m.color : "#4A6754" }}>{m.label}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Custom mood input */}
@@ -332,8 +335,9 @@ export function Home() {
               animate={{ opacity: 1, y: 0 }}
               style={{ marginTop: 10, background: "#EAF6FF", borderRadius: 12, padding: "10px 14px" }}
             >
-              <p style={{ fontSize: "0.85rem", color: "#0D3C6E", fontWeight: 600, lineHeight: 1.6 }}>
-                💬 {moodData.message}
+              <p style={{ fontSize: "0.85rem", color: "#0D3C6E", fontWeight: 600, lineHeight: 1.6, display: "flex", alignItems: "flex-start", gap: 6 }}>
+                <MessageCircle size={15} color="#3B9ED4" style={{ flexShrink: 0, marginTop: 2 }} />
+                {moodData.message}
               </p>
             </motion.div>
           )}
@@ -352,8 +356,9 @@ export function Home() {
           </div>
 
           {aiLoading && !aiRecs.length && (
-            <p style={{ fontSize: "0.82rem", color: "#7A9B87", fontWeight: 600, marginBottom: 10 }}>
-              🤖 La IA está analizando tu perfil...
+            <p style={{ fontSize: "0.82rem", color: "#7A9B87", fontWeight: 600, marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+              <Bot size={15} color="#7A9B87" />
+              La IA está analizando tu perfil...
             </p>
           )}
 
@@ -376,7 +381,7 @@ export function Home() {
                       <span style={{ fontSize: "3rem" }}>{category?.emoji}</span>
                       {aiExpl && (
                         <div style={{ position: "absolute", top: 6, left: 6, background: "rgba(255,255,255,0.25)", borderRadius: 8, padding: "2px 7px" }}>
-                          <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "white" }}>🤖 IA</span>
+                          <Bot size={11} color="white" style={{ display: "inline-block", marginRight: 2 }} /><span style={{ fontSize: "0.65rem", fontWeight: 800, color: "white" }}>IA</span>
                         </div>
                       )}
                       <div style={{ position: "absolute", top: 6, right: 6 }}>
@@ -461,7 +466,7 @@ export function Home() {
 
         {/* ── Disclaimer ── */}
         <div style={{ padding: "14px 18px", borderRadius: 18, display: "flex", alignItems: "flex-start", gap: 12, background: "#EAF6FF", border: "1.5px solid #A8D8F0" }}>
-          <span style={{ fontSize: "1.3rem" }}>⚕️</span>
+          <Stethoscope size={20} color="#1A5276" style={{ flexShrink: 0, marginTop: 1 }} />
           <p style={{ fontSize: "0.85rem", color: "#1A5276", fontWeight: 600, lineHeight: 1.5 }}>
             Recuerda consultar con tu médico o fisioterapeuta antes de comenzar cualquier rutina nueva.
           </p>

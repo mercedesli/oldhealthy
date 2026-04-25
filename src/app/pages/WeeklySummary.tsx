@@ -1,15 +1,15 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "motion/react";
-import { X, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { X, TrendingUp, TrendingDown, Minus, Dumbbell, Target, Wind, Trophy, Star, Leaf, Flame, PartyPopper, type LucideIcon } from "lucide-react";
 import { getSessionHistory } from "../../lib/streaks";
 import { loadStreaks } from "../../lib/streaks";
 
-const CATEGORY_META: Record<string, { name: string; emoji: string }> = {
-  "piernas-gluteos":        { name: "Piernas y Glúteos", emoji: "🦵" },
-  "core":                   { name: "Core",              emoji: "💪" },
-  "brazos-superior":        { name: "Brazos",            emoji: "🤲" },
-  "movilidad-flexibilidad": { name: "Flexibilidad",      emoji: "🧘" },
+const CATEGORY_META: Record<string, { name: string; Icon: LucideIcon }> = {
+  "piernas-gluteos":        { name: "Piernas y Glúteos", Icon: Dumbbell },
+  "core":                   { name: "Core",              Icon: Target },
+  "brazos-superior":        { name: "Brazos",            Icon: Dumbbell },
+  "movilidad-flexibilidad": { name: "Flexibilidad",      Icon: Wind },
 };
 
 function getTodayStr() {
@@ -28,14 +28,14 @@ function getWeekRange(weeksAgo: number): { start: string; end: string } {
   return { start: fmt(mon), end: fmt(sun) };
 }
 
-function motivational(count: number) {
+function motivational(count: number): { Icon: LucideIcon; title: string; color: string; msg: string } {
   if (count >= 5)
-    return { emoji: "🏆", title: "¡Semana excepcional!", color: "#3D8A62", msg: "Completaste 5 o más ejercicios. Tu disciplina es admirable. ¡Sigue así!" };
+    return { Icon: Trophy,   title: "¡Semana excepcional!", color: "#3D8A62", msg: "Completaste 5 o más ejercicios. Tu disciplina es admirable. ¡Sigue así!" };
   if (count >= 3)
-    return { emoji: "⭐", title: "¡Buena semana!", color: "#3B9ED4", msg: "Hiciste 3-4 ejercicios esta semana. Vas por muy buen camino." };
+    return { Icon: Star,     title: "¡Buena semana!",       color: "#3B9ED4", msg: "Hiciste 3-4 ejercicios esta semana. Vas por muy buen camino." };
   if (count >= 1)
-    return { emoji: "💪", title: "¡Empezando fuerte!", color: "#E8648A", msg: "Completaste 1-2 ejercicios. Cada paso cuenta. ¡Añade uno más la próxima semana!" };
-  return { emoji: "🌱", title: "¡Esta semana es tu oportunidad!", color: "#7B52AB", msg: "No registramos ejercicios esta semana. Mañana es un nuevo día. ¡Empieza con algo sencillo!" };
+    return { Icon: Dumbbell, title: "¡Empezando fuerte!",   color: "#E8648A", msg: "Completaste 1-2 ejercicios. Cada paso cuenta. ¡Añade uno más la próxima semana!" };
+  return   { Icon: Leaf,     title: "¡Esta semana es tu oportunidad!", color: "#7B52AB", msg: "No registramos ejercicios esta semana. Mañana es un nuevo día. ¡Empieza con algo sencillo!" };
 }
 
 interface WeeklySummaryProps {
@@ -67,6 +67,7 @@ export function WeeklySummary({ onClose }: WeeklySummaryProps) {
   const hasPrevWeek = lastCount > 0;
 
   const motive = motivational(thisCount);
+  const MotiveIcon = motive.Icon;
 
   const handleClose = () => {
     localStorage.setItem("lastWeeklySummaryDate", getTodayStr());
@@ -87,8 +88,9 @@ export function WeeklySummary({ onClose }: WeeklySummaryProps) {
             <p style={{ color: "rgba(255,255,255,0.78)", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
               Semana del {thisWeek.start} al {thisWeek.end}
             </p>
-            <h1 style={{ color: "white", fontSize: "1.75rem", fontWeight: 900, lineHeight: 1.2 }}>
-              {motive.emoji} {motive.title}
+            <h1 style={{ color: "white", fontSize: "1.75rem", fontWeight: 900, lineHeight: 1.2, display: "flex", alignItems: "center", gap: 10 }}>
+              <MotiveIcon size={28} color="white" />
+              {motive.title}
             </h1>
           </div>
           <button
@@ -106,7 +108,7 @@ export function WeeklySummary({ onClose }: WeeklySummaryProps) {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 14, marginBottom: 20 }}>
           <StatCard label="Ejercicios" value={thisCount} unit="esta semana" color="#3D8A62" />
           <StatCard label="Minutos" value={totalMins} unit="ejercitados" color="#3B9ED4" />
-          <StatCard label="Racha actual" value={streaks.current} unit="días seguidos 🔥" color="#E8648A" />
+          <StatCard label="Racha actual" value={streaks.current} unit={<>días seguidos <Flame size={13} color="#E8648A" style={{ display: "inline-block", verticalAlign: "middle" }} /></>} color="#E8648A" />
         </div>
 
         {/* Comparison with last week */}
@@ -126,22 +128,30 @@ export function WeeklySummary({ onClose }: WeeklySummaryProps) {
             </div>
             <div>
               <p style={{ fontSize: "0.8rem", color: "#7A9B87", fontWeight: 600, marginBottom: 2 }}>Comparado con la semana anterior</p>
-              <p style={{ fontSize: "1.15rem", fontWeight: 800, color: comparison > 0 ? "#3D8A62" : comparison < 0 ? "#E8648A" : "#4A6754" }}>
-                {comparison > 0 ? `+${comparison}% más ejercicios 🎉` : comparison < 0 ? `${comparison}% menos ejercicios` : "Igual que la semana pasada"}
+              <p style={{ fontSize: "1.15rem", fontWeight: 800, color: comparison > 0 ? "#3D8A62" : comparison < 0 ? "#E8648A" : "#4A6754", display: "flex", alignItems: "center", gap: 6 }}>
+                {comparison > 0
+                  ? <><span>+{comparison}% más ejercicios</span><PartyPopper size={16} color="#3D8A62" /></>
+                  : comparison < 0
+                  ? `${comparison}% menos ejercicios`
+                  : "Igual que la semana pasada"}
               </p>
             </div>
           </motion.div>
         )}
 
         {/* Top category */}
-        {topCat && CATEGORY_META[topCat[0]] && (
+        {topCat && CATEGORY_META[topCat[0]] && (() => {
+          const CatIcon = CATEGORY_META[topCat[0]].Icon;
+          return (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.18 }}
             style={{ background: "white", borderRadius: 18, padding: "16px 20px", marginBottom: 16, border: "1.5px solid #E8F5EE", display: "flex", alignItems: "center", gap: 14 }}
           >
-            <span style={{ fontSize: "2.2rem" }}>{CATEGORY_META[topCat[0]].emoji}</span>
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: "#E8F5EE", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <CatIcon size={24} color="#3D8A62" />
+            </div>
             <div>
               <p style={{ fontSize: "0.8rem", color: "#7A9B87", fontWeight: 600, marginBottom: 2 }}>Categoría más trabajada</p>
               <p style={{ fontSize: "1.1rem", fontWeight: 800, color: "#1E3A2F" }}>{CATEGORY_META[topCat[0]].name}</p>
@@ -150,7 +160,8 @@ export function WeeklySummary({ onClose }: WeeklySummaryProps) {
               </p>
             </div>
           </motion.div>
-        )}
+          );
+        })()}
 
         {/* 7-day history dots */}
         <motion.div
@@ -204,8 +215,8 @@ export function WeeklySummary({ onClose }: WeeklySummaryProps) {
             boxShadow: `0 4px 20px ${motive.color}44`,
           }}
         >
-          <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "white" }}>
-            ¡Seguir ejercitándome! 💪
+          <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "white", display: "inline-flex", alignItems: "center", gap: 8 }}>
+            ¡Seguir ejercitándome! <Dumbbell size={18} color="white" />
           </span>
         </motion.button>
       </div>
@@ -213,7 +224,7 @@ export function WeeklySummary({ onClose }: WeeklySummaryProps) {
   );
 }
 
-function StatCard({ label, value, unit, color }: { label: string; value: number; unit: string; color: string }) {
+function StatCard({ label, value, unit, color }: { label: string; value: number; unit: React.ReactNode; color: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}

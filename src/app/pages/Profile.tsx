@@ -1,6 +1,7 @@
+import React from "react";
 import { useNavigate } from "react-router";
 import { motion } from "motion/react";
-import { Edit2, FileText, BookOpen } from "lucide-react";
+import { Edit2, FileText, BookOpen, User, Cake, Scale, Activity, Armchair, Leaf, Zap, AlertTriangle, Sunrise, PersonStanding } from "lucide-react";
 
 type Profile = Record<string, string | string[]>;
 
@@ -32,7 +33,7 @@ function Pill({ label, color }: { label: string; color: string }) {
   );
 }
 
-function InfoRow({ emoji, label, value }: { emoji: string; label: string; value: string }) {
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   if (!value || value === "—") return null;
   return (
     <div
@@ -44,7 +45,7 @@ function InfoRow({ emoji, label, value }: { emoji: string; label: string; value:
         borderBottom: "1px solid #F0F5F2",
       }}
     >
-      <span style={{ fontSize: "1.15rem", flexShrink: 0, marginTop: 1 }}>{emoji}</span>
+      <div style={{ flexShrink: 0, marginTop: 2 }}>{icon}</div>
       <div style={{ flex: 1 }}>
         <p style={{ fontSize: "0.72rem", color: "#9A8EAA", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", margin: 0, marginBottom: 2 }}>
           {label}
@@ -91,7 +92,7 @@ function PainDots({ level }: { level: number }) {
 function EmptyProfile({ onEdit }: { onEdit: () => void }) {
   return (
     <div style={{ textAlign: "center", padding: "60px 24px" }}>
-      <span style={{ fontSize: "4rem", display: "block", marginBottom: 16 }}>👤</span>
+      <User size={64} color="#9A8EAA" style={{ display: "block", margin: "0 auto 16px" }} />
       <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: "#1E3A2F", marginBottom: 8 }}>
         Aún no tienes perfil
       </h2>
@@ -123,19 +124,6 @@ export function Profile() {
   const painAreas = (profile.painAreas as string[]) || [];
   const hasPain = painAreas.length > 0 && !painAreas.includes("No tengo dolor");
   const painLevel = hasPain ? (painAreas.length >= 3 ? 4 : painAreas.length >= 2 ? 3 : 2) : 1;
-
-  const sexEmoji: Record<string, string> = {
-    "Masculino": "👨",
-    "Femenino": "👩",
-    "Prefiero no decirlo": "🙂",
-  };
-
-  const mobilityEmoji = (m: string) => {
-    if (m?.includes("silla de ruedas")) return "♿";
-    if (m?.includes("bastón") || m?.includes("andador")) return "🦯";
-    if (m?.includes("dificultad")) return "🚶";
-    return "🚶";
-  };
 
   const initials = (profile.name as string || "?")
     .split(" ")
@@ -212,32 +200,32 @@ export function Profile() {
 
             {/* ── Datos personales ── */}
             <Section title="Datos personales">
-              <InfoRow emoji={sexEmoji[profile.sex as string] || "👤"} label="Nombre" value={str(profile.name)} />
-              <InfoRow emoji="🎂" label="Edad" value={str(profile.age)} />
-              <InfoRow emoji={sexEmoji[profile.sex as string] || "🙂"} label="Sexo" value={str(profile.sex)} />
+              <InfoRow icon={<User size={18} color="#9A8EAA" />} label="Nombre" value={str(profile.name)} />
+              <InfoRow icon={<Cake size={18} color="#9A8EAA" />} label="Edad" value={str(profile.age)} />
+              <InfoRow icon={<User size={18} color="#9A8EAA" />} label="Sexo" value={str(profile.sex)} />
             </Section>
 
             {/* ── Movilidad ── */}
             <Section title="Movilidad y actividad">
-              <InfoRow emoji={mobilityEmoji(profile.mobility as string)} label="Movilidad" value={str(profile.mobility)} />
-              <InfoRow emoji="🦯" label="Apoyo para caminar" value={str(profile.walkingAid)} />
-              <InfoRow emoji="⚖️" label="Equilibrio" value={str(profile.balance)} />
-              <InfoRow emoji="🏃" label="Actividad diaria" value={str(profile.activity)} />
-              <InfoRow emoji="🪑" label="Levantarse de la silla" value={str(profile.sitToStand)} />
-              <InfoRow emoji="🌿" label="Ejercicio reciente" value={str(profile.recentExercise)} />
+              <InfoRow icon={<PersonStanding size={18} color="#9A8EAA" />} label="Movilidad" value={str(profile.mobility)} />
+              <InfoRow icon={<PersonStanding size={18} color="#9A8EAA" />} label="Apoyo para caminar" value={str(profile.walkingAid)} />
+              <InfoRow icon={<Scale size={18} color="#9A8EAA" />} label="Equilibrio" value={str(profile.balance)} />
+              <InfoRow icon={<Activity size={18} color="#9A8EAA" />} label="Actividad diaria" value={str(profile.activity)} />
+              <InfoRow icon={<Armchair size={18} color="#9A8EAA" />} label="Levantarse de la silla" value={str(profile.sitToStand)} />
+              <InfoRow icon={<Leaf size={18} color="#9A8EAA" />} label="Ejercicio reciente" value={str(profile.recentExercise)} />
             </Section>
 
             {/* ── Salud ── */}
             <Section title="Salud">
-              <InfoRow emoji="⚡" label="Nivel de energía" value={str(profile.energy)} />
+              <InfoRow icon={<Zap size={18} color="#9A8EAA" />} label="Nivel de energía" value={str(profile.energy)} />
               <div style={{ padding: "10px 0", borderBottom: "1px solid #F0F5F2" }}>
                 <p style={{ fontSize: "0.72rem", color: "#9A8EAA", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", margin: 0, marginBottom: 6 }}>
                   Nivel de dolor
                 </p>
                 <PainDots level={painLevel} />
               </div>
-              <InfoRow emoji="⚠️" label="Historial de caídas" value={str(profile.falls)} />
-              <InfoRow emoji="🌅" label="Rigidez articular" value={str(profile.stiffness)} />
+              <InfoRow icon={<AlertTriangle size={18} color="#9A8EAA" />} label="Historial de caídas" value={str(profile.falls)} />
+              <InfoRow icon={<Sunrise size={18} color="#9A8EAA" />} label="Rigidez articular" value={str(profile.stiffness)} />
             </Section>
 
             {/* ── Zonas de dolor ── */}

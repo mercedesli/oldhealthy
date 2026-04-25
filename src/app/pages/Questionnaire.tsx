@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronLeft, Check, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, Check, ChevronRight, Loader2, BookOpen, CheckCircle, AlertTriangle } from "lucide-react";
 import { questions } from "../data/questionnaire";
 import { sendQuestionnaireEmail, EMAILJS_CONFIG } from "../utils/emailService";
 import { checkMedicalWarning, deriveUserPainLevel } from "../data/exercises";
@@ -132,9 +132,9 @@ export function Questionnaire() {
           <button
             onClick={() => window.dispatchEvent(new CustomEvent("restart-tutorial"))}
             title="Ver tutorial de nuevo"
-            style={{ fontSize: "0.72rem", fontWeight: 700, color: "#3B9ED4", background: "#EAF6FF", border: "none", borderRadius: 10, padding: "5px 10px", cursor: "pointer", fontFamily: "Nunito, sans-serif" }}
+            style={{ fontSize: "0.72rem", fontWeight: 700, color: "#3B9ED4", background: "#EAF6FF", border: "none", borderRadius: 10, padding: "5px 10px", cursor: "pointer", fontFamily: "Nunito, sans-serif", display: "inline-flex", alignItems: "center", gap: 5 }}
           >
-            📖 Tutorial
+            <BookOpen size={13} color="#3B9ED4" /> Tutorial
           </button>
           <span style={{ fontSize: "0.82rem", color: "#3B9ED4", fontWeight: 700 }}>
             {Math.round(progress)}%
@@ -173,8 +173,8 @@ export function Questionnaire() {
                 </p>
               )}
               {question.type === "multi" && (
-                <p style={{ fontSize: "0.85rem", color: "#7A9B87", fontWeight: 600, marginTop: "0.25rem" }}>
-                  ✓ Puedes seleccionar varias opciones
+                <p style={{ fontSize: "0.85rem", color: "#7A9B87", fontWeight: 600, marginTop: "0.25rem", display: "flex", alignItems: "center", gap: 5 }}>
+                  <CheckCircle size={14} color="#3D8A62" /> Puedes seleccionar varias opciones
                 </p>
               )}
             </div>
@@ -238,7 +238,7 @@ export function Questionnaire() {
                 />
                 {textInput.trim() && (
                   <p style={{ fontSize: "0.85rem", color: "#E8648A", marginTop: "0.5rem", fontWeight: 700 }}>
-                    ¡Hola, {textInput}! 👋
+                    ¡Hola, {textInput}!
                   </p>
                 )}
               </div>
@@ -270,7 +270,7 @@ export function Questionnaire() {
             ) : (
               <>
                 <span style={{ fontSize: "1.1rem", fontWeight: 800, color: isAnswered() ? "white" : "#9A8EAA", fontFamily: "Nunito, sans-serif" }}>
-                  {currentStep === questions.length - 1 ? "Ver mis ejercicios ✨" : "Continuar"}
+                  {currentStep === questions.length - 1 ? "Ver mis ejercicios" : "Continuar"}
                 </span>
                 {isAnswered() && <ChevronRight className="w-5 h-5 text-white" />}
               </>
@@ -287,11 +287,14 @@ export function Questionnaire() {
                 fontSize: "0.82rem",
                 fontWeight: 700,
                 color: emailStatus === "sent" ? "#3D8A62" : "#9A8EAA",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
               }}
             >
               {emailStatus === "sent"
-                ? `✅ Notificación enviada a ${EMAILJS_CONFIG.RECIPIENT_EMAIL}`
-                : "⚠️ No se pudo enviar el email (configura EmailJS)"}
+                ? <><CheckCircle size={14} color="#3D8A62" /> Notificación enviada a {EMAILJS_CONFIG.RECIPIENT_EMAIL}</>
+                : <><AlertTriangle size={14} color="#9A8EAA" /> No se pudo enviar el email (configura EmailJS)</>}
             </motion.p>
           )}
         </div>

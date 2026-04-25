@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   ChevronLeft, Clock, RotateCcw, Pause, Info, Play,
   Heart, Star, CheckCircle, X, SkipForward,
+  Timer, Dumbbell, Coffee, Trophy, Sparkles,
+  Clapperboard, Video, Lightbulb, AlertTriangle, Home,
 } from "lucide-react";
 import { exercises, categories, type Exercise } from "../data/exercises";
 import { supabase, getUserId } from "../../lib/supabase";
@@ -309,8 +311,9 @@ function GuidedModal({ exercise, colors, onClose, onComplete }: GuidedModalProps
               </p>
             </div>
 
-            <p style={{ textAlign: "center", fontSize: "0.82rem", color: "#7A9B87", fontWeight: 600, marginBottom: 16 }}>
-              ⏱️ Descansa {restLabel} entre series
+            <p style={{ textAlign: "center", fontSize: "0.82rem", color: "#7A9B87", fontWeight: 600, marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
+              <Timer size={14} color="#7A9B87" />
+              Descansa {restLabel} entre series
             </p>
 
             {/* Skip button */}
@@ -350,16 +353,17 @@ function GuidedModal({ exercise, colors, onClose, onComplete }: GuidedModalProps
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <span style={{ fontSize: "0.9rem", fontWeight: 800, color: "#1565C0" }}>
-                💪 Serie {currentSet} completada
+              <span style={{ fontSize: "0.9rem", fontWeight: 800, color: "#1565C0", display: "flex", alignItems: "center", gap: 6 }}>
+                <Dumbbell size={16} color="#1565C0" />
+                Serie {currentSet} completada
               </span>
               <button onClick={onClose} style={{ background: "#C8DEF0", border: "none", borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
                 <X style={{ width: 18, height: 18, color: "#3B9ED4" }} />
               </button>
             </div>
 
-            <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0D3C6E", marginBottom: 22 }}>
-              Descansa un momento ☕
+            <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0D3C6E", marginBottom: 22, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              Descansa un momento <Coffee size={18} color="#0D3C6E" />
             </p>
 
             <div style={{ position: "relative", width: 150, height: 150, margin: "0 auto 22px" }}>
@@ -418,7 +422,7 @@ function GuidedModal({ exercise, colors, onClose, onComplete }: GuidedModalProps
                 boxShadow: "0 8px 28px rgba(61,138,98,0.35)",
               }}
             >
-              <span style={{ fontSize: "2.8rem" }}>🏆</span>
+              <Trophy size={44} color="white" />
             </motion.div>
 
             <motion.h2
@@ -445,9 +449,9 @@ function GuidedModal({ exercise, colors, onClose, onComplete }: GuidedModalProps
               transition={{ delay: 0.42 }}
               style={{ background: "#E8F5EE", border: "1.5px solid #B7DFC8", borderRadius: 18, padding: "16px 20px", marginBottom: 26 }}
             >
-              <p style={{ fontSize: "0.95rem", color: "#2E7D52", fontWeight: 700, lineHeight: 1.5 }}>
-                🌟 ¡Excelente trabajo!<br />
-                Cada serie que haces cuida tu salud y movilidad.
+              <p style={{ fontSize: "0.95rem", color: "#2E7D52", fontWeight: 700, lineHeight: 1.5, display: "flex", alignItems: "flex-start", gap: 6 }}>
+                <Sparkles size={16} color="#2E7D52" style={{ flexShrink: 0, marginTop: 2 }} />
+                <span>¡Excelente trabajo!<br />Cada serie que haces cuida tu salud y movilidad.</span>
               </p>
             </motion.div>
 
@@ -548,7 +552,7 @@ export function ExerciseDetail() {
         {/* Pain Level */}
         <div className="rounded-2xl p-4 mb-5 flex items-center gap-3" style={{ background: "white", border: "1.5px solid #E8F5EE" }}>
           <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "#FFF8E7" }}>
-            <span style={{ fontSize: "1.5rem" }}>⚠️</span>
+            <AlertTriangle size={24} color="#E65100" />
           </div>
           <div>
             <p style={{ fontSize: "0.82rem", color: "#7A9B87", fontWeight: 600 }}>Dolor máximo recomendado</p>
@@ -566,11 +570,11 @@ export function ExerciseDetail() {
 
         {/* Video */}
         <div className="mb-5">
-          <h3 style={{ fontSize: "1.08rem", fontWeight: 800, color: "#1E3A2F", marginBottom: "12px" }}>🎬 Video Demostrativo</h3>
+          <h3 style={{ fontSize: "1.08rem", fontWeight: 800, color: "#1E3A2F", marginBottom: "12px", display: "flex", alignItems: "center", gap: 8 }}><Clapperboard size={18} color="#1E3A2F" /> Video Demostrativo</h3>
           <div className="rounded-2xl overflow-hidden shadow-md relative" style={{ paddingBottom: "56.25%", background: "#1A1A2E" }}>
             {!exercise.videoId ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6" style={{ background: `linear-gradient(160deg, ${colors.from}22, ${colors.to}33)`, border: `2px dashed ${colors.from}55`, borderRadius: "16px" }}>
-                <span style={{ fontSize: "2.5rem" }}>🎥</span>
+                <Video size={48} color={colors.from} />
                 <p style={{ fontSize: "1rem", fontWeight: 800, color: colors.from, textAlign: "center" }}>Video próximamente</p>
                 <p style={{ fontSize: "0.82rem", color: "#7A9B87", fontWeight: 500, textAlign: "center", lineHeight: 1.5 }}>Sigue las instrucciones escritas hasta que el video esté disponible</p>
               </div>
@@ -592,8 +596,10 @@ export function ExerciseDetail() {
         <div className="flex rounded-2xl p-1 mb-4" style={{ background: "#E8F0EC" }}>
           {(["instructions", "benefits"] as const).map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)} className="flex-1 py-2.5 rounded-xl transition-all" style={{ background: activeTab === tab ? "white" : "transparent", boxShadow: activeTab === tab ? "0 2px 8px rgba(0,0,0,0.1)" : "none" }}>
-              <span style={{ fontSize: "0.9rem", fontWeight: 700, color: activeTab === tab ? "#1E3A2F" : "#7A9B87", fontFamily: "Nunito, sans-serif" }}>
-                {tab === "instructions" ? "📋 Instrucciones" : "✨ Beneficios"}
+              <span style={{ fontSize: "0.9rem", fontWeight: 700, color: activeTab === tab ? "#1E3A2F" : "#7A9B87", fontFamily: "Nunito, sans-serif", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                {tab === "instructions"
+                  ? <><Info size={14} /> Instrucciones</>
+                  : <><Sparkles size={14} /> Beneficios</>}
               </span>
             </button>
           ))}
@@ -609,18 +615,18 @@ export function ExerciseDetail() {
               <p style={{ fontSize: "1rem", color: "#2D4A38", fontWeight: 500, lineHeight: 1.7 }}>{exercise.description}</p>
               <div className="mt-4 pt-4" style={{ borderTop: "1.5px solid #E8F5EE" }}>
                 <p style={{ fontSize: "0.85rem", fontWeight: 700, color: "#7A9B87", marginBottom: "6px" }}>DESCANSO ENTRE SERIES</p>
-                <p style={{ fontSize: "0.95rem", color: "#2D4A38", fontWeight: 600 }}>⏱️ {exercise.restTime}</p>
+                <p style={{ fontSize: "0.95rem", color: "#2D4A38", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}><Timer size={14} color="#7A9B87" /> {exercise.restTime}</p>
               </div>
             </div>
           )}
           {activeTab === "benefits" && (
             <div>
               <div className="mb-4">
-                <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "#1E3A2F", marginBottom: "8px" }}>💡 ¿Por qué es importante?</h4>
+                <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "#1E3A2F", marginBottom: "8px", display: "flex", alignItems: "center", gap: 6 }}><Lightbulb size={16} color="#E65100" /> ¿Por qué es importante?</h4>
                 <p style={{ fontSize: "1rem", color: "#2D4A38", fontWeight: 500, lineHeight: 1.7 }}>{exercise.importance}</p>
               </div>
               <div className="pt-4" style={{ borderTop: "1.5px solid #E8F5EE" }}>
-                <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "#1E3A2F", marginBottom: "8px" }}>🏠 ¿Cómo me ayuda en el día a día?</h4>
+                <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "#1E3A2F", marginBottom: "8px", display: "flex", alignItems: "center", gap: 6 }}><Home size={16} color="#3D8A62" /> ¿Cómo me ayuda en el día a día?</h4>
                 <p style={{ fontSize: "1rem", color: "#2D4A38", fontWeight: 500, lineHeight: 1.7 }}>{exercise.dailyBenefit}</p>
               </div>
             </div>

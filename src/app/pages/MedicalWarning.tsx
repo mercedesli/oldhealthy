@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router";
 import { motion } from "motion/react";
-import { AlertTriangle, ArrowLeft, ChevronRight } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ChevronRight, HeartHandshake } from "lucide-react";
 
 export function MedicalWarning() {
   const navigate = useNavigate();
@@ -134,7 +134,8 @@ export function MedicalWarning() {
               textAlign: "center",
             }}
           >
-            💙 Te recomendamos hablar con tu médico o fisioterapeuta antes de
+            <HeartHandshake size={18} color="#3B9ED4" style={{ display: "inline-block", verticalAlign: "middle", marginRight: 6 }} />
+            Te recomendamos hablar con tu médico o fisioterapeuta antes de
             empezar. Ellos podrán darte una guía segura y personalizada para ti.
           </p>
         </motion.div>

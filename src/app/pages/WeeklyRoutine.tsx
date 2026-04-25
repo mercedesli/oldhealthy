@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronLeft, RefreshCw, Loader2, Calendar, Clock, Dumbbell } from "lucide-react";
+import { ChevronLeft, RefreshCw, Loader2, Calendar, Clock, Dumbbell, Moon, Lightbulb, Target, Sparkles } from "lucide-react";
 import { exercises } from "../data/exercises";
 import { loadStreaks, getSessionHistory } from "../../lib/streaks";
 import { generateWeeklyRoutine, type WeeklyRoutineData, type RoutineDay } from "../../lib/anthropic";
@@ -44,7 +44,7 @@ function DayCard({ day, index }: { day: RoutineDay; index: number }) {
         style={{ width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", border: "none", background: "white", cursor: "pointer", textAlign: "left", fontFamily: "Nunito, sans-serif" }}
       >
         <div style={{ width: 48, height: 48, borderRadius: 14, background: day.rest ? "#F0F0F0" : `${color}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          {day.rest ? <span style={{ fontSize: "1.5rem" }}>😴</span> : <span style={{ fontSize: "1.4rem" }}>💪</span>}
+          {day.rest ? <Moon size={22} color="#9A8EAA" /> : <Dumbbell size={22} color={color} />}
         </div>
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: "1rem", fontWeight: 800, color: "#1E3A2F", margin: 0, textTransform: "capitalize" }}>{day.dayName}</p>
@@ -71,8 +71,9 @@ function DayCard({ day, index }: { day: RoutineDay; index: number }) {
             <div style={{ padding: "0 18px 18px", borderTop: "1px solid #F0F5F2" }}>
               {/* Consejo */}
               {day.tip && (
-                <p style={{ fontSize: "0.85rem", color: color, fontWeight: 600, marginBottom: 12, marginTop: 12, fontStyle: "italic" }}>
-                  💡 {day.tip}
+                <p style={{ fontSize: "0.85rem", color: color, fontWeight: 600, marginBottom: 12, marginTop: 12, fontStyle: "italic", display: "flex", alignItems: "flex-start", gap: 6 }}>
+                  <Lightbulb size={15} color={color} style={{ flexShrink: 0, marginTop: 2 }} />
+                  {day.tip}
                 </p>
               )}
 
@@ -114,7 +115,7 @@ function DayCard({ day, index }: { day: RoutineDay; index: number }) {
             style={{ overflow: "hidden" }}
           >
             <p style={{ padding: "12px 18px 18px", fontSize: "0.9rem", color: "#7A9B87", fontWeight: 600, borderTop: "1px solid #F0F5F2" }}>
-              El descanso es parte del entrenamiento. Aprovecha para hidratarte bien y dormir suficiente. 🌙
+              El descanso es parte del entrenamiento. Aprovecha para hidratarte bien y dormir suficiente.
             </p>
           </motion.div>
         )}
@@ -182,8 +183,8 @@ export function WeeklyRoutine() {
             <ChevronLeft style={{ width: 22, height: 22, color: "white" }} />
           </button>
           <div>
-            <h1 style={{ color: "white", fontSize: "1.6rem", fontWeight: 900, margin: 0, lineHeight: 1.2 }}>
-              🗓️ Mi Rutina Semanal
+            <h1 style={{ color: "white", fontSize: "1.6rem", fontWeight: 900, margin: 0, lineHeight: 1.2, display: "flex", alignItems: "center", gap: 10 }}>
+              <Calendar size={24} color="white" /> Mi Rutina Semanal
             </h1>
             {formattedDate && (
               <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "0.82rem", fontWeight: 600, margin: "4px 0 0" }}>
@@ -221,8 +222,9 @@ export function WeeklyRoutine() {
           ) : (
             <>
               {routine ? <RefreshCw style={{ width: 18, height: 18, color: "white" }} /> : <Calendar style={{ width: 18, height: 18, color: "white" }} />}
+              <Sparkles size={18} color="white" />
               <span style={{ fontSize: "1rem", fontWeight: 800, color: "white" }}>
-                {routine ? "Regenerar rutina con IA" : "✨ Generar mi rutina con IA"}
+                {routine ? "Regenerar rutina con IA" : "Generar mi rutina con IA"}
               </span>
             </>
           )}
@@ -240,7 +242,7 @@ export function WeeklyRoutine() {
         {/* Empty state */}
         {!routine && !loading && !error && (
           <div style={{ textAlign: "center", padding: "40px 20px" }}>
-            <span style={{ fontSize: "4rem", display: "block", marginBottom: 16 }}>🗓️</span>
+            <Calendar size={64} color="#9A8EAA" style={{ display: "block", margin: "0 auto 16px" }} />
             <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: "#1E3A2F", marginBottom: 8 }}>
               ¡Crea tu plan semanal!
             </h2>
@@ -256,8 +258,9 @@ export function WeeklyRoutine() {
             {/* Week goal */}
             <div style={{ background: "white", borderRadius: 18, padding: "16px 20px", marginBottom: 20, border: "1.5px solid #E8F5EE" }}>
               <p style={{ fontSize: "0.75rem", color: "#7A9B87", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Objetivo de la semana</p>
-              <p style={{ fontSize: "1rem", fontWeight: 700, color: "#1E3A2F", lineHeight: 1.5 }}>
-                🎯 {routine.weekGoal}
+              <p style={{ fontSize: "1rem", fontWeight: 700, color: "#1E3A2F", lineHeight: 1.5, display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <Target size={16} color="#3D8A62" style={{ flexShrink: 0, marginTop: 3 }} />
+                {routine.weekGoal}
               </p>
             </div>
 

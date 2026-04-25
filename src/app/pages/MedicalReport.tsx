@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "motion/react";
-import { ChevronLeft, FileText, Printer, Loader2, RefreshCw } from "lucide-react";
+import { ChevronLeft, FileText, Printer, Loader2, RefreshCw, Sparkles, Stethoscope } from "lucide-react";
 import { loadStreaks, getSessionHistory } from "../../lib/streaks";
 import { generateMedicalReport } from "../../lib/anthropic";
 
@@ -106,7 +106,7 @@ export function MedicalReport() {
             <ChevronLeft style={{ width: 22, height: 22, color: "white" }} />
           </button>
           <div>
-            <h1 style={{ color: "white", fontSize: "1.6rem", fontWeight: 900, margin: 0 }}>📋 Reporte para tu Médico</h1>
+            <h1 style={{ color: "white", fontSize: "1.6rem", fontWeight: 900, margin: 0, display: "flex", alignItems: "center", gap: 10 }}><FileText size={24} color="white" /> Reporte para tu Médico</h1>
             <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.82rem", fontWeight: 600, margin: "4px 0 0" }}>
               Generado por IA · Basado en tu historial de ejercicios
             </p>
@@ -137,8 +137,9 @@ export function MedicalReport() {
           ) : (
             <>
               {report ? <RefreshCw style={{ width: 18, height: 18, color: "white" }} /> : <FileText style={{ width: 18, height: 18, color: "white" }} />}
+              <Sparkles size={18} color="white" />
               <span style={{ fontSize: "1rem", fontWeight: 800, color: "white" }}>
-                {report ? "Regenerar reporte" : "✨ Generar reporte con IA"}
+                {report ? "Regenerar reporte" : "Generar reporte con IA"}
               </span>
             </>
           )}
@@ -156,7 +157,7 @@ export function MedicalReport() {
         {/* Empty state */}
         {!report && !loading && !error && (
           <div style={{ textAlign: "center", padding: "40px 20px" }}>
-            <span style={{ fontSize: "4rem", display: "block", marginBottom: 16 }}>🩺</span>
+            <Stethoscope size={64} color="#3D8A62" style={{ display: "block", margin: "0 auto 16px" }} />
             <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: "#1E3A2F", marginBottom: 8 }}>
               Reporte profesional para tu médico
             </h2>
@@ -164,8 +165,9 @@ export function MedicalReport() {
               La IA generará un resumen profesional de tu actividad física del último mes: ejercicios realizados, frecuencia, zonas trabajadas, progreso y recomendaciones.
             </p>
             <div style={{ background: "#EAF6FF", border: "1.5px solid #A8D8F0", borderRadius: 14, padding: "12px 16px", display: "inline-block" }}>
-              <p style={{ fontSize: "0.82rem", color: "#1A5276", fontWeight: 600 }}>
-                ⚕️ Este reporte es informativo y no reemplaza el criterio médico
+              <p style={{ fontSize: "0.82rem", color: "#1A5276", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                <Stethoscope size={14} color="#1A5276" />
+                Este reporte es informativo y no reemplaza el criterio médico
               </p>
             </div>
           </div>

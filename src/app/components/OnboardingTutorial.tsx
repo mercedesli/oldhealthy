@@ -1,46 +1,46 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, ChevronRight, ChevronLeft } from "lucide-react";
+import { X, ChevronRight, ChevronLeft, Hand, Home, Bot, Flame, Dumbbell, Calendar, BarChart2, Rocket, type LucideIcon } from "lucide-react";
 
-const STEPS = [
+const STEPS: Array<{ Icon: LucideIcon; title: string; desc: string; color: string }> = [
   {
-    emoji: "👋",
+    Icon: Hand,
     title: "¡Bienvenido/a a OldHealthy!",
     desc: "Tu app de ejercicios geriátricos personalizados. Te guiaremos por las secciones principales para que aproveches todo al máximo.",
     color: "#3D8A62",
   },
   {
-    emoji: "🏠",
+    Icon: Home,
     title: "Tu pantalla de inicio",
     desc: "Aquí verás un mensaje de tu coach virtual, la racha de días activos, tus ejercicios recomendados y acceso rápido a todas las secciones.",
     color: "#3B9ED4",
   },
   {
-    emoji: "🤖",
+    Icon: Bot,
     title: "Inteligencia Artificial",
     desc: "La IA analiza tu perfil y estado de ánimo para recomendarte los mejores ejercicios cada día. ¡Los ejercicios cambian según cómo te sientas!",
     color: "#E8648A",
   },
   {
-    emoji: "🔥",
+    Icon: Flame,
     title: "Tu racha diaria",
     desc: "Cada día que completas al menos un ejercicio, tu racha aumenta. ¡Intenta mantenerla! Verás los últimos 7 días como puntos de colores.",
     color: "#E8648A",
   },
   {
-    emoji: "🦵",
+    Icon: Dumbbell,
     title: "Categorías de ejercicios",
     desc: "Explora por zona del cuerpo: Piernas, Core, Brazos y Flexibilidad. Cada ejercicio incluye video, instrucciones y un temporizador automático.",
     color: "#7B52AB",
   },
   {
-    emoji: "🗓️",
+    Icon: Calendar,
     title: "Rutina semanal con IA",
     desc: "Pídele a la IA que genere un plan personalizado para los próximos 7 días, adaptado a tus objetivos y nivel de energía.",
     color: "#3D8A62",
   },
   {
-    emoji: "📊",
+    Icon: BarChart2,
     title: "Resumen semanal",
     desc: "Cada semana verás ejercicios completados, minutos totales y comparativa con la semana anterior. También puedes generar un reporte para tu médico.",
     color: "#3B9ED4",
@@ -107,14 +107,14 @@ export function OnboardingTutorial({ onComplete }: Props) {
             ))}
           </div>
 
-          {/* Emoji badge */}
+          {/* Icon badge */}
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 280, damping: 18, delay: 0.08 }}
             style={{ width: 84, height: 84, borderRadius: 26, background: `${cur.color}18`, border: `2px solid ${cur.color}28`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 22px" }}
           >
-            <span style={{ fontSize: "2.6rem" }}>{cur.emoji}</span>
+            <cur.Icon size={40} color={cur.color} />
           </motion.div>
 
           {/* Title */}
@@ -142,8 +142,8 @@ export function OnboardingTutorial({ onComplete }: Props) {
               onClick={next}
               style={{ flex: 1, padding: "16px 20px", borderRadius: 16, border: "none", background: `linear-gradient(135deg, ${cur.color}, ${cur.color}BB)`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "Nunito, sans-serif", boxShadow: `0 4px 16px ${cur.color}40` }}
             >
-              <span style={{ fontSize: "1rem", fontWeight: 800, color: "white" }}>
-                {isLast ? "¡Empezar! 🚀" : "Siguiente"}
+              <span style={{ fontSize: "1rem", fontWeight: 800, color: "white", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                {isLast ? <><Rocket size={16} color="white" /> ¡Empezar!</> : "Siguiente"}
               </span>
               {!isLast && <ChevronRight style={{ width: 18, height: 18, color: "white" }} />}
             </button>

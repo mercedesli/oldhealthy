@@ -1,7 +1,7 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "motion/react";
-import { ChevronLeft, Phone, MapPin, MessageCircle, Clock, Tag } from "lucide-react";
+import { ChevronLeft, Phone, MapPin, MessageCircle, Clock, Tag, Info, Navigation, Search, Stethoscope, Building2 } from "lucide-react";
 import { medicalCenters } from "../data/medicalCenters";
 
 type City     = "Todos" | "Santo Domingo" | "Santiago";
@@ -52,12 +52,12 @@ function FilterChip({
 
 function ActionButton({
   href,
-  emoji,
+  icon,
   label,
   color,
 }: {
   href: string;
-  emoji: string;
+  icon: React.ReactNode;
   label: string;
   color: string;
 }) {
@@ -78,7 +78,7 @@ function ActionButton({
         fontFamily: "Nunito, sans-serif",
       }}
     >
-      <span style={{ fontSize: "0.9rem" }}>{emoji}</span>
+      {icon}
       <span style={{ fontSize: "0.78rem", fontWeight: 700, color }}>{label}</span>
     </a>
   );
@@ -172,8 +172,9 @@ function CenterCard({ center, index }: { center: typeof medicalCenters[0]; index
               marginBottom: 14,
             }}
           >
-            <p style={{ fontSize: "0.8rem", color, fontWeight: 600, margin: 0, lineHeight: 1.55 }}>
-              ℹ️ {center.note}
+            <p style={{ fontSize: "0.8rem", color, fontWeight: 600, margin: 0, lineHeight: 1.55, display: "flex", alignItems: "flex-start", gap: 5 }}>
+              <Info size={13} color={color} style={{ flexShrink: 0, marginTop: 2 }} />
+              {center.note}
             </p>
           </div>
         )}
@@ -183,21 +184,21 @@ function CenterCard({ center, index }: { center: typeof medicalCenters[0]; index
           {center.phone && (
             <ActionButton
               href={`tel:${center.phone.replace(/[-\s]/g, "")}`}
-              emoji="📞"
+              icon={<Phone size={14} color={color} />}
               label="Llamar"
               color={color}
             />
           )}
           <ActionButton
             href={mapsUrl}
-            emoji="🗺️"
+            icon={<Navigation size={14} color="#7B52AB" />}
             label="Cómo llegar"
             color="#7B52AB"
           />
           {center.whatsapp && (
             <ActionButton
               href={`https://wa.me/${center.whatsapp}`}
-              emoji="💬"
+              icon={<MessageCircle size={14} color="#25D366" />}
               label="WhatsApp"
               color="#25D366"
             />
@@ -250,8 +251,8 @@ export function MedicalCenters() {
             <ChevronLeft style={{ width: 22, height: 22, color: "white" }} />
           </button>
           <div>
-            <h1 style={{ color: "white", fontSize: "1.6rem", fontWeight: 900, margin: 0, lineHeight: 1.2 }}>
-              🏥 Centros de Salud
+            <h1 style={{ color: "white", fontSize: "1.6rem", fontWeight: 900, margin: 0, lineHeight: 1.2, display: "flex", alignItems: "center", gap: 10 }}>
+              <Building2 size={24} color="white" /> Centros de Salud
             </h1>
             <p style={{ color: "rgba(255,255,255,0.72)", fontSize: "0.82rem", fontWeight: 600, margin: "4px 0 0" }}>
               Rehabilitación y fisioterapia en República Dominicana
@@ -324,7 +325,7 @@ export function MedicalCenters() {
         {/* Cards */}
         {filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "48px 20px" }}>
-            <span style={{ fontSize: "3rem", display: "block", marginBottom: 12 }}>🔍</span>
+            <Search size={48} color="#9A8EAA" style={{ display: "block", margin: "0 auto 12px" }} />
             <p style={{ fontSize: "1rem", fontWeight: 700, color: "#4A6754" }}>
               No hay centros con los filtros seleccionados
             </p>
@@ -350,7 +351,7 @@ export function MedicalCenters() {
             gap: 10,
           }}
         >
-          <span style={{ fontSize: "1.1rem", flexShrink: 0 }}>⚕️</span>
+          <Stethoscope size={18} color="#1A5276" style={{ flexShrink: 0, marginTop: 1 }} />
           <p style={{ fontSize: "0.82rem", color: "#1A5276", fontWeight: 600, lineHeight: 1.6, margin: 0 }}>
             Verifica horarios y disponibilidad antes de visitar. La información puede cambiar. Siempre consulta con tu médico tratante antes de iniciar cualquier programa de rehabilitación.
           </p>
