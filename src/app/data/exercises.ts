@@ -725,8 +725,8 @@ export const exercises: Exercise[] = [
   },
 ];
 
-// Exercises that require standing — excluded for wheelchair users,
-// and balance-unipodal excluded for cane/walker users too.
+// Ejercicios que requieren estar de pie — excluidos para usuarios en silla de ruedas,
+// y balance-unipodal también excluido para usuarios con bastón o andador.
 const STANDING_EXERCISE_IDS = new Set([
   "marcha-lugar-asistida",
   "elevacion-talones",
@@ -789,28 +789,28 @@ export function getRecommendedExercises(profile: Record<string, string | string[
     walkingAid === "Uso andador";
   const veryLowEnergy = energy === "Muy bajo, me canso fácilmente";
 
-  // Build filtered pool
+  // Construir el conjunto filtrado de ejercicios
   const pool = exercises.filter((ex) => {
-    // Exclude exercises where the user's pain exceeds what the exercise tolerates
+    // Excluir ejercicios en los que el dolor del usuario supera el límite tolerado
     if (ex.maxPainLevel < userPainLevel) return false;
 
-    // Wheelchair users cannot do standing exercises
+    // Usuarios en silla de ruedas no pueden hacer ejercicios de pie
     if (usesWheelchair && STANDING_EXERCISE_IDS.has(ex.id)) return false;
 
-    // Cane/walker users should not attempt unipodal balance
+    // Usuarios con bastón o andador no deben intentar el equilibrio unipodal
     if (usesWalkingAid && ex.id === "balance-unipodal") return false;
 
-    // Very low energy: only Easy exercises
+    // Energía muy baja: solo ejercicios fáciles
     if (veryLowEnergy && ex.difficulty !== "Fácil") return false;
 
     return true;
   });
 
-  // Score each exercise in the pool
+  // Puntuar cada ejercicio del conjunto
   const scored = pool.map((ex) => {
     let score = 0;
 
-    // Pain area → prioritize matching category
+    // Zona de dolor → priorizar categoría correspondiente
     if (painAreas.includes("Piernas o rodillas")) {
       if (ex.categoryId === "piernas-gluteos") score += 3;
     }
@@ -829,7 +829,7 @@ export function getRecommendedExercises(profile: Record<string, string | string[
       if (ex.id === "movilidad-tobillo") score += 4;
     }
 
-    // Falls history → prioritize balance exercises
+    // Historial de caídas → priorizar ejercicios de equilibrio
     if (falls === "Dos o más caídas") {
       if (ex.tags.includes("equilibrio")) score += 4;
       if (ex.tags.includes("caídas")) score += 3;
@@ -837,14 +837,14 @@ export function getRecommendedExercises(profile: Record<string, string | string[
       if (ex.tags.includes("equilibrio")) score += 2;
     }
 
-    // Balance difficulty
+    // Dificultad de equilibrio
     if (balance === "Sí, tengo dificultades") {
       if (ex.tags.includes("equilibrio")) score += 3;
     } else if (balance === "A veces me siento inestable") {
       if (ex.tags.includes("equilibrio")) score += 2;
     }
 
-    // Goals
+    // Objetivos
     if (goals.includes("Mejorar el equilibrio") && ex.tags.includes("equilibrio")) score += 3;
     if (goals.includes("Mejorar la forma de caminar") && ex.tags.includes("marcha")) score += 3;
     if (goals.includes("Fortalecer músculos") && ex.difficulty !== "Fácil") score += 2;
@@ -853,7 +853,7 @@ export function getRecommendedExercises(profile: Record<string, string | string[
     if (goals.includes("Reducir la rigidez") && ex.categoryId === "movilidad-flexibilidad") score += 3;
     if (goals.includes("Tener más energía") && ex.difficulty === "Fácil") score += 1;
 
-    // Stiffness zone → specific exercises
+    // Zona de rigidez → ejercicios específicos
     if (stiffnessZone.includes("Cuello") && ex.id === "movilidad-cuello") score += 3;
     if (stiffnessZone.includes("Hombros") && ex.id === "rotacion-hombros") score += 3;
     if (stiffnessZone.includes("Caderas") && ex.id === "movilidad-caderas") score += 3;
@@ -861,7 +861,7 @@ export function getRecommendedExercises(profile: Record<string, string | string[
     if (stiffnessZone.includes("Manos o muñecas") && ex.id === "muneca-dedos") score += 3;
     if (stiffnessZone.includes("Tobillos o pies") && ex.id === "movilidad-tobillo") score += 3;
 
-    // Prefer easy exercises for low energy
+    // Preferir ejercicios fáciles para baja energía
     if (energy === "Bajo, me canso más de lo normal" && ex.difficulty === "Fácil") score += 1;
 
     return { exercise: ex, score };
@@ -869,7 +869,7 @@ export function getRecommendedExercises(profile: Record<string, string | string[
 
   scored.sort((a, b) => b.score - a.score);
 
-  // Select top exercises ensuring variety (max 2 per category)
+  // Seleccionar los mejores ejercicios garantizando variedad (máx. 2 por categoría)
   const result: Exercise[] = [];
   const categoryCounts: Record<string, number> = {};
 
@@ -882,7 +882,7 @@ export function getRecommendedExercises(profile: Record<string, string | string[
     }
   }
 
-  // If still under 4, relax the category cap
+  // Si hay menos de 4, relajar el límite por categoría
   if (result.length < 4) {
     for (const { exercise } of scored) {
       if (result.length >= 4) break;
@@ -892,7 +892,7 @@ export function getRecommendedExercises(profile: Record<string, string | string[
     }
   }
 
-  // Fallback if pool was completely empty
+  // Fallback si el conjunto de ejercicios estaba completamente vacío
   if (result.length === 0) {
     return [
       exercises.find((e) => e.id === "rutina-movilidad-general"),

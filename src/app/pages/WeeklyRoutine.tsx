@@ -13,7 +13,7 @@ function loadCached(): WeeklyRoutineData | null {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
     const data: WeeklyRoutineData = JSON.parse(raw);
-    // Invalidate if older than 7 days
+    // Invalidar si tiene más de 7 días
     const age = Date.now() - new Date(data.generatedAt).getTime();
     if (age > 7 * 24 * 60 * 60 * 1000) return null;
     return data;
@@ -38,7 +38,7 @@ function DayCard({ day, index }: { day: RoutineDay; index: number }) {
       transition={{ delay: index * 0.06 }}
       style={{ background: "white", borderRadius: 20, overflow: "hidden", border: "1.5px solid #E8F5EE", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}
     >
-      {/* Day header */}
+      {/* Cabecera del día */}
       <button
         onClick={() => setExpanded(e => !e)}
         style={{ width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", border: "none", background: "white", cursor: "pointer", textAlign: "left", fontFamily: "Nunito, sans-serif" }}
@@ -69,14 +69,14 @@ function DayCard({ day, index }: { day: RoutineDay; index: number }) {
             style={{ overflow: "hidden" }}
           >
             <div style={{ padding: "0 18px 18px", borderTop: "1px solid #F0F5F2" }}>
-              {/* Tip */}
+              {/* Consejo */}
               {day.tip && (
                 <p style={{ fontSize: "0.85rem", color: color, fontWeight: 600, marginBottom: 12, marginTop: 12, fontStyle: "italic" }}>
                   💡 {day.tip}
                 </p>
               )}
 
-              {/* Exercises */}
+              {/* Ejercicios */}
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {day.exercises.map((ex, i) => {
                   const exData = exercises.find(e => e.id === ex.id);

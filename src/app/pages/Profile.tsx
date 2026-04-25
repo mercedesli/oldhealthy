@@ -4,7 +4,7 @@ import { Edit2, FileText, BookOpen } from "lucide-react";
 
 type Profile = Record<string, string | string[]>;
 
-// ── Visual helpers ────────────────────────────────────────────────────────────
+// ── Helpers visuales ─────────────────────────────────────────────────────────
 
 function str(v: unknown): string {
   if (Array.isArray(v)) return v.join(", ");
@@ -68,7 +68,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-// ── Pain level visual ─────────────────────────────────────────────────────────
+// ── Visualización del nivel de dolor ──────────────────────────────────────────
 
 function PainDots({ level }: { level: number }) {
   const colors = level <= 2 ? "#3D8A62" : level <= 3 ? "#E65100" : "#E8648A";
@@ -86,7 +86,7 @@ function PainDots({ level }: { level: number }) {
   );
 }
 
-// ── Empty state ───────────────────────────────────────────────────────────────
+// ── Estado vacío ──────────────────────────────────────────────────────────────
 
 function EmptyProfile({ onEdit }: { onEdit: () => void }) {
   return (
@@ -108,7 +108,7 @@ function EmptyProfile({ onEdit }: { onEdit: () => void }) {
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Componente principal ──────────────────────────────────────────────────────
 
 export function Profile() {
   const navigate = useNavigate();
@@ -119,7 +119,7 @@ export function Profile() {
 
   const hasProfile = !!profile.name;
 
-  // Derive pain level from profile (same logic as exercises.ts)
+  // Derivar nivel de dolor del perfil (misma lógica que exercises.ts)
   const painAreas = (profile.painAreas as string[]) || [];
   const hasPain = painAreas.length > 0 && !painAreas.includes("No tengo dolor");
   const painLevel = hasPain ? (painAreas.length >= 3 ? 4 : painAreas.length >= 2 ? 3 : 2) : 1;

@@ -12,7 +12,7 @@ import {
   type MoodResult,
 } from "../../lib/anthropic";
 
-// ── Cache helpers ────────────────────────────────────────────────────────────
+// ── Helpers de caché ─────────────────────────────────────────────────────────
 
 function getTodayStr() { return new Date().toISOString().split("T")[0]; }
 
@@ -20,7 +20,7 @@ function profileHash(p: Record<string, unknown>): string {
   return btoa(encodeURIComponent(JSON.stringify({ name: p.name, age: p.age, mobility: p.mobility, painLevel: p.painLevel }))).slice(0, 20);
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Subcomponentes ────────────────────────────────────────────────────────────
 
 function DifficultyBadge({ difficulty }: { difficulty: string }) {
   const colors: Record<string, { bg: string; text: string }> = {
@@ -43,7 +43,7 @@ const MOODS = [
   { label: "Con dolor",  emoji: "🤕", color: "#E8648A" },
 ];
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Componente principal ──────────────────────────────────────────────────────
 
 export function Home() {
   const navigate  = useNavigate();
@@ -51,10 +51,10 @@ export function Home() {
   const userName  = (profile.name as string) || "Amigo";
   const streaks   = loadStreaks();
 
-  // Rule-based recommendations (fallback)
+  // Recomendaciones basadas en reglas (fallback)
   const fallbackRecs = getRecommendedExercises(profile);
 
-  // ── State ────────────────────────────────────────────────────────────────
+  // ── Estado ───────────────────────────────────────────────────────────────
   const [coachMsg,     setCoachMsg]     = useState("");
   const [coachLoading, setCoachLoading] = useState(false);
 
@@ -66,7 +66,7 @@ export function Home() {
   const [moodData,     setMoodData]     = useState<MoodResult | null>(null);
   const [moodLoading,  setMoodLoading]  = useState(false);
 
-  // ── TAREA 5: Coach message (once per day) ────────────────────────────────
+  // ── TAREA 5: Mensaje del coach (una vez por día) ─────────────────────────
   useEffect(() => {
     const today = getTodayStr();
     const cached = (() => { try { return JSON.parse(localStorage.getItem("coachMessage") || "{}"); } catch { return {}; } })();
@@ -87,9 +87,9 @@ export function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── TAREA 1: AI Recommendations (cached by profile hash) ─────────────────
+  // ── TAREA 1: Recomendaciones con IA (cacheadas por hash del perfil) ───────
   useEffect(() => {
-    if (!profile.name) return; // no profile yet
+    if (!profile.name) return; // sin perfil todavía
     const today = getTodayStr();
     const hash  = profileHash(profile);
     const cached = (() => { try { return JSON.parse(localStorage.getItem("aiRecommendations") || "{}"); } catch { return {}; } })();
@@ -110,7 +110,7 @@ export function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-show WeeklySummary on Sundays / 7 days without viewing
+  // Mostrar resumen semanal automáticamente los domingos o si pasaron 7 días sin verlo
   useEffect(() => {
     const today     = getTodayStr();
     const dayOfWeek = new Date().getDay();
@@ -123,7 +123,7 @@ export function Home() {
     }
   }, [navigate]);
 
-  // ── TAREA 4: Handle mood selection ───────────────────────────────────────
+  // ── TAREA 4: Gestionar selección del estado de ánimo ─────────────────────
   const handleMoodSelect = async (selectedMood: string) => {
     setMood(selectedMood);
     setMoodData(null);
@@ -143,10 +143,10 @@ export function Home() {
     }
   };
 
-  // ── Build displayed recommendations ──────────────────────────────────────
-  // If mood + AI filter → use filtered IDs from mood
-  // Else if AI recs loaded → use those (they have explanations)
-  // Else → fallback rule-based
+  // ── Construir recomendaciones a mostrar ──────────────────────────────────
+  // Si hay estado de ánimo + filtro IA → usar IDs filtrados por el ánimo
+  // Si cargaron recomendaciones de IA → usarlas (tienen explicaciones)
+  // Si no → fallback basado en reglas
   const displayedIds: string[] = moodData?.filteredIds.length
     ? moodData.filteredIds
     : aiRecs.length

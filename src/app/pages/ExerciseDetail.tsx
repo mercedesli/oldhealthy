@@ -9,7 +9,7 @@ import { supabase, getUserId } from "../../lib/supabase";
 import { recordExercise, addSessionRecord } from "../../lib/streaks";
 import { useState, useEffect } from "react";
 
-// ─── Color helpers ────────────────────────────────────────────────────────────
+// ─── Helpers de color ────────────────────────────────────────────────────────
 
 function getCategoryColors(id: string) {
   const map: Record<string, { from: string; to: string; lightBg: string }> = {
@@ -21,7 +21,7 @@ function getCategoryColors(id: string) {
   return map[id] || { from: "#3D8A62", to: "#5BAF7A", lightBg: "#E8F5EE" };
 }
 
-// ─── Parse helpers ────────────────────────────────────────────────────────────
+// ─── Helpers de parseo ───────────────────────────────────────────────────────
 
 function parseSets(setsStr: string): number {
   const m = setsStr.match(/(\d+)/);
@@ -45,7 +45,7 @@ function parseExerciseSeconds(duration: string, totalSets: number): number {
   return Math.max(30, Math.round(totalSecs / totalSets));
 }
 
-// ─── AudioContext beep ────────────────────────────────────────────────────────
+// ─── Pitido con AudioContext ──────────────────────────────────────────────────
 
 function playBeep() {
   try {
@@ -74,7 +74,7 @@ function playBeep() {
   }
 }
 
-// ─── Supabase helper ──────────────────────────────────────────────────────────
+// ─── Helper de Supabase ───────────────────────────────────────────────────────
 
 async function saveSessionToSupabase(
   exerciseId: string,
@@ -96,7 +96,7 @@ async function saveSessionToSupabase(
   }
 }
 
-// ─── localStorage helpers ─────────────────────────────────────────────────────
+// ─── Helpers de localStorage ──────────────────────────────────────────────────
 
 function getTodayStr() {
   return new Date().toISOString().split("T")[0];
@@ -129,7 +129,7 @@ function InfoCard({ icon, label, value, lightBg, textColor }: {
   );
 }
 
-// ─── CircularTimer SVG ────────────────────────────────────────────────────────
+// ─── Temporizador circular SVG ────────────────────────────────────────────────
 
 function CircularTimer({
   current, total, stroke, trackStroke, size = 150,
@@ -476,7 +476,7 @@ function GuidedModal({ exercise, colors, onClose, onComplete }: GuidedModalProps
   );
 }
 
-// ─── ExerciseDetail page ──────────────────────────────────────────────────────
+// ─── Página ExerciseDetail ────────────────────────────────────────────────────
 
 export function ExerciseDetail() {
   const { exerciseId } = useParams();

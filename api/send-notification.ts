@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-// Vercel serverless function — called by the daily cron job at 14:00 UTC (10 AM AST)
-// Also callable manually via GET /api/send-notification for testing
+// Función serverless de Vercel — ejecutada por el cron diario a las 14:00 UTC (10 AM AST)
+// También se puede invocar manualmente vía GET /api/send-notification para pruebas
 
 export const config = {
   maxDuration: 30,
@@ -56,7 +56,7 @@ async function sendPushNotification(message: string): Promise<{ recipients: numb
           url: 'https://oldhealthy.vercel.app/inicio',
         },
       ],
-      // Show notification even if app is open in foreground
+      // Mostrar notificación aunque la app esté abierta en primer plano
       web_push_topic: 'daily-motivation',
     }),
   });
@@ -71,8 +71,8 @@ async function sendPushNotification(message: string): Promise<{ recipients: numb
 }
 
 export default async function handler(req: Request): Promise<Response> {
-  // Allow Vercel cron calls (header set automatically by Vercel)
-  // and manual GET calls for testing (protected by CRON_SECRET if set)
+  // Permitir llamadas del cron de Vercel (encabezado establecido automáticamente por Vercel)
+  // y llamadas manuales para pruebas (protegidas por CRON_SECRET si está definido)
   const cronSecret = process.env.CRON_SECRET;
   if (cronSecret) {
     const auth = req.headers.get('authorization');

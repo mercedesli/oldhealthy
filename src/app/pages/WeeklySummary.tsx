@@ -74,7 +74,7 @@ export function WeeklySummary({ onClose }: WeeklySummaryProps) {
   };
 
   useEffect(() => {
-    // Mark as seen on mount
+    // Marcar como visto al montar el componente
     localStorage.setItem("lastWeeklySummaryDate", getTodayStr());
   }, []);
 

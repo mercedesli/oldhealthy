@@ -115,7 +115,7 @@ const NAV_ITEMS = [
   { path: "/centros-salud",                    label: "Centros de Salud",  icon: "🏥" },
 ];
 
-// ── Full sidebar (desktop ≥1024px) ──────────────────────────────────────────
+// ── Sidebar completo (escritorio ≥1024px) ───────────────────────────────────
 
 function FullSidebar() {
   const navigate = useNavigate();
@@ -196,7 +196,7 @@ function FullSidebar() {
   );
 }
 
-// ── Compact sidebar (tablet 768-1023px) ─────────────────────────────────────
+// ── Sidebar compacto (tablet 768-1023px) ────────────────────────────────────
 
 function CompactSidebar() {
   const navigate = useNavigate();
@@ -248,10 +248,10 @@ export function AppLayout() {
     () => !localStorage.getItem("onboardingDone")
   );
 
-  // Initialize OneSignal push notifications once on mount
+  // Inicializar notificaciones push de OneSignal una sola vez al montar
   useEffect(() => { initNotifications(); }, []);
 
-  // Allow any page to re-trigger the tutorial
+  // Permitir que cualquier página relance el tutorial
   useEffect(() => {
     const handler = () => setShowTutorial(true);
     window.addEventListener("restart-tutorial", handler);

@@ -48,7 +48,7 @@ export function Questionnaire() {
   const handleOptionSelect = (value: string) => {
     if (question.type === "multi") {
       const current = (answers[question.id] as string[]) || [];
-      // Special rule: "No tengo dolor" / "No aplica" deselects all others
+      // Regla especial: "No tengo dolor" / "No aplica" deselecciona todo lo demás
       if (value === "No tengo dolor" || value === "No aplica" || value === "No uso apoyo") {
         setAnswers({ ...answers, [question.id]: [value] });
         return;
@@ -62,7 +62,7 @@ export function Questionnaire() {
       setAnswers({ ...answers, [question.id]: updated });
     } else {
       setAnswers({ ...answers, [question.id]: value });
-      // Auto-advance after selection for single choice
+      // Avance automático al seleccionar en preguntas de opción única
       setTimeout(() => {
         handleNext(value);
       }, 300);
@@ -70,7 +70,6 @@ export function Questionnaire() {
   };
 
   const handleNext = (immediateValue?: string) => {
-    const val = immediateValue !== undefined ? immediateValue : currentAnswer;
     let updatedAnswers = { ...answers };
     if (immediateValue !== undefined) {
       updatedAnswers = { ...answers, [question.id]: immediateValue };
@@ -85,7 +84,7 @@ export function Questionnaire() {
       setCurrentStep(currentStep + 1);
       setTextInput(typeof updatedAnswers[questions[currentStep + 1]?.id] === "string" ? updatedAnswers[questions[currentStep + 1]?.id] as string : "");
     } else {
-      // Save profile and send email notification
+      // Guardar perfil y enviar notificación por correo
       localStorage.setItem("userProfile", JSON.stringify(updatedAnswers));
       saveProfileToSupabase(updatedAnswers);
       const needsWarning = checkMedicalWarning(updatedAnswers);

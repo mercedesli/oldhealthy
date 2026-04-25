@@ -36,7 +36,7 @@ function parseJSON<T>(raw: string | null): T | null {
   }
 }
 
-// ── TAREA 1 — AI Exercise Recommendations ────────────────────────────────────
+// ── TAREA 1 — Recomendaciones de ejercicios con IA ────────────────────────────
 
 export interface AiRecommendation {
   id: string;
@@ -75,7 +75,7 @@ Devuelve SOLO el JSON array, sin backticks: [{"id":"...","explanation":"..."}]`,
   return Array.isArray(parsed) ? parsed : null;
 }
 
-// ── TAREA 4 — Mood-based Exercises ───────────────────────────────────────────
+// ── TAREA 4 — Ejercicios según estado de ánimo ────────────────────────────────
 
 export interface MoodResult {
   filteredIds: string[];
@@ -104,7 +104,7 @@ Devuelve SOLO JSON: {"filteredIds":["id1","id2"],"message":"Mensaje cálido de 2
   return parsed?.filteredIds && parsed?.message ? parsed : null;
 }
 
-// ── TAREA 5 — Daily Coach Message ────────────────────────────────────────────
+// ── TAREA 5 — Mensaje diario del coach ───────────────────────────────────────
 
 export async function getCoachMessage(
   profile: Record<string, unknown>,
@@ -128,7 +128,7 @@ Solo el texto del mensaje, sin formato, 2-3 oraciones, cálido y motivador en es
   );
 }
 
-// ── TAREA 3 — Weekly Routine ─────────────────────────────────────────────────
+// ── TAREA 3 — Rutina semanal ──────────────────────────────────────────────────
 
 export interface RoutineExercise {
   id: string;
@@ -195,7 +195,7 @@ Devuelve SOLO JSON:
   return null;
 }
 
-// ── TAREA 6 — Medical Report ─────────────────────────────────────────────────
+// ── TAREA 6 — Reporte médico ──────────────────────────────────────────────────
 
 const CAT_NAMES: Record<string, string> = {
   "piernas-gluteos": "Piernas y Glúteos",

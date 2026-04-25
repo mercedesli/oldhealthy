@@ -53,9 +53,9 @@ function refreshIfStale(data: StreakData): StreakData {
   if (data.lastExercise === today) return data;
 
   const diff = daysBetween(data.lastExercise, today);
-  if (diff <= 1) return data; // yesterday — still valid, streak not broken yet
+  if (diff <= 1) return data; // ayer — sigue siendo válido, la racha no se ha roto
 
-  // Streak broken: shift history and reset current
+  // Racha rota: desplazar el historial y reiniciar el contador actual
   const shifted = shiftHistory(data.history7, Math.min(diff, 7));
   const updated = { ...data, current: 0, history7: shifted };
   localStorage.setItem("streakData", JSON.stringify(updated));
@@ -74,7 +74,7 @@ export function recordExercise(): StreakData {
   const data = loadStreaks();
   const today = getTodayStr();
 
-  if (data.lastExercise === today) return data; // already recorded today
+  if (data.lastExercise === today) return data; // ya registrado hoy
 
   const prev = data.history7.length === 7 ? [...data.history7] : Array(7).fill(false);
   const daysElapsed = data.lastExercise ? daysBetween(data.lastExercise, today) : 7;
