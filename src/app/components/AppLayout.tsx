@@ -1,15 +1,15 @@
 import { Outlet, useNavigate, useLocation } from "react-router";
 import { useState, useEffect } from "react";
-import { Heart } from "lucide-react";
+import { Heart, Home, LayoutGrid, Building2, User, BarChart2, type LucideIcon } from "lucide-react";
 import { OnboardingTutorial } from "./OnboardingTutorial";
 import { initNotifications } from "../../lib/notifications";
 
-const BOTTOM_NAV = [
-  { path: "/inicio",          label: "Inicio",      icon: "🏠" },
-  { path: "/categorias",      label: "Categorías",  icon: "📂" },
-  { path: "/centros-salud",   label: "Centros",     icon: "🏥" },
-  { path: "/perfil",          label: "Perfil",      icon: "👤" },
-  { path: "/resumen-semanal", label: "Resumen",     icon: "📊" },
+const BOTTOM_NAV: { path: string; label: string; Icon: LucideIcon }[] = [
+  { path: "/inicio",          label: "Inicio",      Icon: Home },
+  { path: "/categorias",      label: "Categorías",  Icon: LayoutGrid },
+  { path: "/centros-salud",   label: "Centros",     Icon: Building2 },
+  { path: "/perfil",          label: "Perfil",      Icon: User },
+  { path: "/resumen-semanal", label: "Resumen",     Icon: BarChart2 },
 ];
 
 function BottomNav() {
@@ -23,32 +23,31 @@ function BottomNav() {
         bottom: 0,
         left: 0,
         right: 0,
-        height: 64,
-        background: "white",
-        borderTop: "1.5px solid #E8F0EC",
+        height: 68,
+        background: "#ffffff",
         display: "flex",
         zIndex: 100,
-        boxShadow: "0 -2px 16px rgba(0,0,0,0.07)",
+        boxShadow: "0 -4px 20px rgba(0,0,0,0.08)",
         fontFamily: "Nunito, sans-serif",
       }}
     >
-      {BOTTOM_NAV.map((item) => {
-        const isActive = location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
+      {BOTTOM_NAV.map(({ path, label, Icon }) => {
+        const isActive = location.pathname === path || (path !== "/" && location.pathname.startsWith(path));
         return (
           <button
-            key={item.path}
-            onClick={() => navigate(item.path)}
+            key={path}
+            onClick={() => navigate(path)}
             style={{
               flex: 1,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              gap: 2,
+              gap: 3,
               border: "none",
               background: "transparent",
               cursor: "pointer",
-              padding: "6px 0 8px",
+              padding: "0 0 6px",
               position: "relative",
             }}
           >
@@ -59,23 +58,28 @@ function BottomNav() {
                   top: 0,
                   left: "50%",
                   transform: "translateX(-50%)",
-                  width: 32,
+                  width: 28,
                   height: 3,
-                  borderRadius: "0 0 4px 4px",
-                  background: "linear-gradient(90deg, #3D8A62, #3B9ED4)",
+                  borderRadius: "0 0 3px 3px",
+                  background: "#3D8A62",
                 }}
               />
             )}
-            <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>{item.icon}</span>
+            <Icon
+              size={22}
+              strokeWidth={isActive ? 2.2 : 1.8}
+              color={isActive ? "#3D8A62" : "#9CA3AF"}
+            />
             <span
               style={{
-                fontSize: "0.62rem",
-                fontWeight: isActive ? 800 : 600,
-                color: isActive ? "#3D8A62" : "#9A8EAA",
+                fontSize: "0.6rem",
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? "#3D8A62" : "#9CA3AF",
                 lineHeight: 1,
+                letterSpacing: "0.01em",
               }}
             >
-              {item.label}
+              {label}
             </span>
           </button>
         );
